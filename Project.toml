@@ -1,0 +1,4 @@
+name = "ConvolutionalAnalysisOperatorLearning"
+uuid = "3a526176-b9f4-11e9-0037-2fe9a5ca0081"
+authors = ["David Hong <dahong@umich.edu>"]
+version = "0.1.0"
