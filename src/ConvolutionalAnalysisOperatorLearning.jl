@@ -124,7 +124,6 @@ function _CAOL7(xpad, h0, λ, maxiters, tol, debug)
 end
 
 # Plan
-# 1. Remove xpad via boundary conditions arguments
 # 2. Double check indexing
 # 3. Simplify debug aspects
 # 4. Restructure as iterable
@@ -151,7 +150,6 @@ function _CAOL(xpad, h0, λ, maxiters, tol, debug)
     H0 = copy(H)
 
     # Initialize: temporary variables
-    #zlk = similar(Array{Float64}(undef,size(xpad[1])),ImageFiltering.interior(xpad[1],h0[1]))  # h0 -> h
     zlk = similar(xpad[1],ImageFiltering.interior(xpad[1],h0[1])) # TODO: remove undocumented interior()
     ΨZ = similar(H)
     ψz = [reshape(view(ΨZ,:,k),axes(h0[k])) for k in 1:K]
