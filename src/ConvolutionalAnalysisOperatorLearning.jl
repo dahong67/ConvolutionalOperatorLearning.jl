@@ -102,7 +102,7 @@ function _CAOL7(xpad, h0, λ, maxiters, tol, debug)
         if debug
             #push!(H_convergence, normdiff(H,Hprev)/norm(H))
             push!(H_convergence, norm( H[:]-Hprev[:] ) / norm( H[:] ))
-            push!(H_trace, H)
+            push!(H_trace, copy(H))
             push!(obj_fnc_vals, obj_fnc)
         end
 
@@ -198,7 +198,7 @@ function _CAOL(xpad, h0, λ, maxiters, tol, debug)
         if debug
             #push!(H_convergence, normdiff(H,Hprev)/norm(H))
             push!(H_convergence, norm( H[:]-Hprev[:] ) / norm( H[:] ))
-            push!(H_trace, H)
+            push!(H_trace, copy(H))
             push!(obj_fnc_vals, obj_fnc)
         end
 
