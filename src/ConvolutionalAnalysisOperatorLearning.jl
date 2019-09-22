@@ -123,6 +123,12 @@ function _CAOL7(xpad, h0, λ, maxiters, tol, debug)
     end
 end
 
+# Plan
+# 1. Remove xpad via boundary conditions arguments
+# 2. Double check indexing
+# 3. Simplify debug aspects
+# 4. Restructure as iterable
+
 function CAOL(x, h0, λ; maxiters = 2000, tol = 1e-13, debug=false)
     h0c = centered.(h0)
     xpad = [padarray(xl,Pad(:circular)(h0c[1])) for xl in x]
