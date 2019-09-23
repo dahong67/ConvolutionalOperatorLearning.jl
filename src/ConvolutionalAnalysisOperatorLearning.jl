@@ -1,6 +1,6 @@
 module ConvolutionalAnalysisOperatorLearning
 
-using OffsetArrays, ImageFiltering, LinearAlgebra
+using OffsetArrays, ImageFiltering, LinearAlgebra, IterTools
 
 export CAOL7, CAOL
 
@@ -208,27 +208,15 @@ function CAOL(x,h0::Vector,λ,niters)
 
     return CAOL(x,H0,R,λ,niters)
 end
-
 function CAOL(x,H0,R,λ,niters)
-    # debug: initialization
-    niter = 0
-    H_trace = []
-    H_convergence = []
-    obj_fnc_vals = []
-    Hprev = copy(H0)
-    # debug
+    outs = collect(imap(deepcopy,Iterators.take(CAOLIterable(x,H0,R,λ),niters)))
 
-    for (H,obj) in Iterators.take(CAOLIterable(x,H0,R,λ),niters)
-        # debug: save outputs
-        niter += 1
-        push!(H_convergence, normdiff(H,Hprev)/norm(H))
-        push!(H_trace, copy(H))
-        push!(obj_fnc_vals,obj)
-        # debug
+    H_trace = getindex.(outs,1)
+    H_convergence = [normdiff(H_trace[t],t == 1 ? H0 : H_trace[t-1])/norm(H_trace[t]) for t in 1:length(H_trace)]
+    obj_fnc_vals = getindex.(outs,2)
+    niter = length(outs)
 
-        copyto!(Hprev,H)
-    end
-    h = [reshape(view(Hprev,:,k),map(n->1:n,R)) for k in 1:size(Hprev,2)]
+    h = [reshape(view(H_trace[end],:,k),map(n->1:n,R)) for k in 1:size(H_trace[end],2)]
 
     return (h,niter,obj_fnc_vals,H_trace,H_convergence)
 end
