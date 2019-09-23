@@ -128,30 +128,34 @@ end
 # 4. Restructure as iterable
 
 function CAOL(x, h0, λ; maxiters = 2000, tol = 1e-13, debug=false)
-    h0c = [OffsetArray(h,map(n -> 1:n,size(h))) for h in h0]
-    xpad = [padarray(xl,Pad(:circular)(h0c[1])) for xl in x]
+    R, K = size(h0[1]), length(h0)
 
-    # TODO: test for (scaled) orthonormality
+    H0 = similar(h0[1],prod(R),K) # vectorized form
+    for k in 1:K
+        H0[:,k] = vec(h0[k])
+    end
 
-    return _CAOL(xpad, x, h0c, λ, maxiters, tol, debug)
+    return _CAOL(x, H0, R, λ, maxiters, tol, debug)
 end
-function _CAOL(xpad, x, h0, λ, maxiters, tol, debug)
-    L, K = length(xpad), length(h0)
-    R = length(h0[1])
+function _CAOL(x, H0, R, λ, maxiters, tol, debug)
+    L = length(x)
+    K = size(H0,2)
+
+    # Verify (scaled) orthonormality of H0
+    @assert H0'H0 ≈ (1/prod(R))*I
+
+    # Initialize: padded versions of images
+    xpad = [padarray(xl,Pad(:circular,ntuple(_->0,ndims(xl)),R)) for xl in x]
 
     # Initialize: filters
-    H = similar(h0[1],R,K)                              # vectorized form
-    for k in 1:K
-        H[:,k] = vec(h0[k])
-    end
-    h = [reshape(view(H,:,k),axes(h0[k])) for k in 1:K] # natural form view
+    H = copy(H0)
+    h = [reshape(view(H,:,k),map(n->1:n,R)) for k in 1:K] # natural form view
     Hprev = similar(H)                                  # for convergence test
-    H0 = copy(H)
 
     # Initialize: temporary variables
-    zlk = similar(xpad[1],map(n -> 0:n-1,size(x[1])))
+    zlk = similar(xpad[1],map(n->0:n-1,size(x[1])))
     ΨZ = similar(H)
-    ψz = [reshape(view(ΨZ,:,k),axes(h0[k])) for k in 1:K]
+    ψz = [reshape(view(ΨZ,:,k),axes(h[k])) for k in 1:K]
     ψztemp = similar(ψz[1])
     HΨZ = similar(H,K,K)
     UVt = HΨZ  # alias to the same memory
@@ -190,8 +194,6 @@ function _CAOL(xpad, x, h0, λ, maxiters, tol, debug)
         F = svd!(HΨZ)
         mul!(UVt,F.U,F.Vt)
         mul!(H,H0,UVt)
-
-        # TODO: implement restart conditions
 
         # take care of some output
         if debug
