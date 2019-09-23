@@ -10,7 +10,30 @@ sosdiff(A,B) = sum(ab -> sosdiff(ab...),zip(A,B))
 hard(x, beta) = abs(x) < beta ? zero(x) : x
 _obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ) ? abs2(z)/2 : λ), zlk)
 
-function CAOL(x,H0,R,λ,niters,tol,trace)
+function CAOL(x,h0,  λ;niters=1000,tol=1e-10,trace=false)
+    out = _CAOL(x,h0,λ,  niters,tol,trace)
+    return trace ? out : out[1]
+end
+function CAOL(x,H0,R,λ;niters=1000,tol=1e-10,trace=false)
+    out = _CAOL(x,H0,R,λ,niters,tol,trace)
+    return trace ? out : out[1]
+end
+
+function _CAOL(x,h0,λ,niters,tol,trace)
+    R, K = size(first(h0)), length(h0)
+
+    H0 = similar(first(h0),prod(R),K)
+    for k in 1:K
+        H0[:,k] = vec(h0[k])
+    end
+
+    H, (obj,Hdiff), Hs = _CAOL(x,H0,R,λ,niters,tol,trace)
+    h = [reshape(H[:,k],R) for k in 1:K]
+
+    return h, (obj,Hdiff), Hs
+end
+
+function _CAOL(x,H0,R,λ,niters,tol,trace)
     @assert H0'H0 ≈ (1/prod(R))*I
     K = size(H0,2)
 
