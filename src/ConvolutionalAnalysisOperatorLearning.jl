@@ -124,23 +124,22 @@ function _CAOL7(xpad, h0, λ, maxiters, tol, debug)
 end
 
 # Plan
-# 2. Double check indexing
 # 3. Simplify debug aspects
 # 4. Restructure as iterable
 
 function CAOL(x, h0, λ; maxiters = 2000, tol = 1e-13, debug=false)
-    h0c = centered.(h0)
+    h0c = [OffsetArray(h,map(n -> 1:n,size(h))) for h in h0]
     xpad = [padarray(xl,Pad(:circular)(h0c[1])) for xl in x]
 
     # TODO: test for (scaled) orthonormality
 
-    return _CAOL(xpad, h0c, λ, maxiters, tol, debug)
+    return _CAOL(xpad, x, h0c, λ, maxiters, tol, debug)
 end
-function _CAOL(xpad, h0, λ, maxiters, tol, debug)
+function _CAOL(xpad, x, h0, λ, maxiters, tol, debug)
     L, K = length(xpad), length(h0)
     R = length(h0[1])
 
-    # Initialize: filters (todo: think about axes...currently assumes h0 centered)
+    # Initialize: filters
     H = similar(h0[1],R,K)                              # vectorized form
     for k in 1:K
         H[:,k] = vec(h0[k])
@@ -150,7 +149,7 @@ function _CAOL(xpad, h0, λ, maxiters, tol, debug)
     H0 = copy(H)
 
     # Initialize: temporary variables
-    zlk = similar(xpad[1],ImageFiltering.interior(xpad[1],h0[1])) # TODO: remove undocumented interior()
+    zlk = similar(xpad[1],map(n -> 0:n-1,size(x[1])))
     ΨZ = similar(H)
     ψz = [reshape(view(ΨZ,:,k),axes(h0[k])) for k in 1:K]
     ψztemp = similar(ψz[1])
@@ -159,7 +158,7 @@ function _CAOL(xpad, h0, λ, maxiters, tol, debug)
 
     # initializations if debug is on
     if debug
-        xconvh = similar(xpad[1],ImageFiltering.interior(xpad[1],h0[1]))
+        xconvh = deepcopy(zlk)
         niter = 1;
         H_trace = [];
         H_convergence = [];
