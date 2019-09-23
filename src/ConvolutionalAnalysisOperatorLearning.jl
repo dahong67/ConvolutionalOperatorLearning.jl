@@ -123,12 +123,30 @@ function _CAOL7(xpad, h0, λ, maxiters, tol, debug)
     end
 end
 
-# todos
-# + stopping criterion
-# + parametric types?
+# todos: parametric types
 
 
-import Base: iterate, IteratorSize, IsInfinite, eltype
+import Base: iterate, IteratorSize, IsInfinite, SizeUnknown, tail
+
+struct FilterHaltIterable
+    it
+    tol
+end
+IteratorSize(::Type{<:FilterHaltIterable}) = SizeUnknown()
+
+function iterate(fh::FilterHaltIterable,state=(false,copy(fh.it.H0),))
+    halt, Hprev, itstate = state[1], state[2], tail(tail(state))
+    halt && return nothing
+
+    itnext = iterate(fh.it,itstate...)
+    itnext === nothing && return nothing
+
+    H = itnext[2].H
+    haltnext = normdiff(H,Hprev)/norm(H) <= fh.tol
+
+    copyto!(Hprev,H)
+    return itnext[1],(haltnext,Hprev,itnext[2])
+end
 
 struct CAOLIterable
     x
@@ -140,7 +158,6 @@ struct CAOLIterable
         error("Initial filters not orthonormal.") : new(x,H0,R,λ)
 end
 IteratorSize(::Type{<:CAOLIterable}) = IsInfinite()
-eltype(::Type{CAOLIterable}) = CAOLState
 
 struct CAOLState
     xpad   # padded images
@@ -198,7 +215,7 @@ function iterate(it::CAOLIterable,s::CAOLState=CAOLState(it))
     return (s.H,obj),s
 end
 
-function CAOL(x,h0::Vector,λ,niters)
+function CAOL(x,h0::Vector,λ,niters,tol)
     R, K = size(h0[1]), length(h0)
 
     H0 = similar(h0[1],prod(R),K) # vectorized form
@@ -206,10 +223,10 @@ function CAOL(x,h0::Vector,λ,niters)
         H0[:,k] = vec(h0[k])
     end
 
-    return CAOL(x,H0,R,λ,niters)
+    return CAOL(x,H0,R,λ,niters,tol)
 end
-function CAOL(x,H0,R,λ,niters)
-    outs = collect(imap(deepcopy,Iterators.take(CAOLIterable(x,H0,R,λ),niters)))
+function CAOL(x,H0,R,λ,niters,tol)
+    outs = collect(imap(deepcopy,Iterators.take(FilterHaltIterable(CAOLIterable(x,H0,R,λ),tol),niters)))
 
     H_trace = getindex.(outs,1)
     H_convergence = [normdiff(H_trace[t],t == 1 ? H0 : H_trace[t-1])/norm(H_trace[t]) for t in 1:length(H_trace)]
