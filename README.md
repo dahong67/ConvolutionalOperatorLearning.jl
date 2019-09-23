@@ -59,6 +59,85 @@ The output has `9` filters of size `3 x 3`.
 
 **TODO: Clean-up and add documentation**
 
+## Optimization problem and algorithm
+
+`CAOL` attempts to minimize the following function
+(written in partly Julia notation)
+```julia
+sum(1/2*norm(x[l]✪h[k] - z[l,k])^2 + λ*norm(z[l,k],0) for k in 1:K, l in 1:L)
+```
+with respect to `z[l,k]` and `H = [vec(h[1]) ... vec(h[K])]` where
++ `H` is constrained to have (scaled) orthonormal columns,
+  i.e., `H'H == (1/R)*I`, where `R = size(H,1)`
++ `✪` denotes circular correlation, namely `xl ✪ hk` is an `OffsetArray`
+  indexed along each dimension of size `n` by lag in `0:n-1`,
+  where (for the one-dimensional case) the `i`th lag is
+  ```julia
+  (xl ✪ hk)[i] = sum(xpadl[j+i]*hk[j] for j in 1:R)
+  ```
+  with `xpadl = padarray(xl,Pad(:circular, [...]))`
+  being a circularly padded version of `xl`.
+  This calculation is accomplished in-place with `ImageFiltering.jl` via
+  ```julia
+  imfilter!(out,xpadl,(hk,),NoPad(),Algorithm.FIR())
+  ```
+  where `out` has axes of the form `0:n-1` in each dimension.
+
+The optimization is carried out via alternating minimization.
+
+1. **Sparse code update.**
+  The objective is minimized with respect to `z[l,k]`
+  by hard-thresholding `x[l]✪h[k]` as follows
+  ```julia
+  imfilter!(z[l,k],xpad[l],(h[k],),NoPad(),Algorithm.FIR())
+  z[l,k] .= hard.(z[l,k],sqrt(2λ))
+  ```
+  It turns out that only an accumulated version of `z[l,k]` is needed,
+  so the code only stores one at a time,
+  reusing the memory across `l` and `k` for efficiency.
+
+2. **Filter update.**
+  Minimizing the objective with respect to `H` turns out
+  to be a Procrustes problem and is solved by
+  the polar factor of
+  ```julia
+  sum([XPADL'z[l,1] ... XPADL'z[l,K]] for l in 1:L)
+  ```
+  where `XPADL` is the matrix such that `XPADL * h == xl ✪ h`.
+  In one dimension,
+  ```julia
+  XPADL = [
+  xl[1] xl[2] ... xl[R-1] xl[R];
+  xl[2] xl[3] ... xl[R]   xl[1];
+  ...
+  xl[n] xl[1] ... xl[R-2] xl[R-1]
+  ]
+  ```
+  yielding
+  ```julia
+  XPADL' = [
+  xl[1]   xl[2] ... xl[n];
+  xl[2]   xl[3] ... xl[1];
+  ...
+  xl[R-1] xl[R] ... xl[R-2]
+  xl[R]   xl[1] ... xl[R-1]
+  ]
+  ```
+  so `XPADL'z` is another circular correlation
+  and can be accomplished in-place with `ImageFiltering.jl` via
+  ```julia
+  imfilter!(out,xpad[l],(z[l,k],),NoPad(),Algorithm.FIR())
+  ```
+  by having `out` be indexed from `1:r` in each dimension
+  where `r` is the size of the filters along that dimension.
+  Note that this convenient property is for correlation, and not convolution.
+
+
+**TODO:**
+double check the derivation (especially `R`s and `K`s, and dimension > 1),
+write up the version for handcrafted filters,
+and put into docs with LaTeX.
+
 ## Relevant papers
 
 [1] Il Yong Chun and Jeffrey A. Fessler, "Convolutional analysis operator learning: Acceleration and convergence," submitted, Jan. 2019.
