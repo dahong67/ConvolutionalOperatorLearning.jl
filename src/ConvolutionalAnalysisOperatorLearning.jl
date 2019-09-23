@@ -124,10 +124,9 @@ function _CAOL7(xpad, h0, λ, maxiters, tol, debug)
 end
 
 # Plan
-# 3. Simplify debug aspects
 # 4. Restructure as iterable
 
-function CAOL(x, h0, λ; maxiters = 2000, tol = 1e-13, debug=false)
+function CAOL(x, h0, λ; maxiters = 2000, tol = 1e-13)
     R, K = size(h0[1]), length(h0)
 
     H0 = similar(h0[1],prod(R),K) # vectorized form
@@ -135,9 +134,12 @@ function CAOL(x, h0, λ; maxiters = 2000, tol = 1e-13, debug=false)
         H0[:,k] = vec(h0[k])
     end
 
-    return _CAOL(x, H0, R, λ, maxiters, tol, debug)
+    return _CAOL(x, H0, R, λ, maxiters, tol)
 end
-function _CAOL(x, H0, R, λ, maxiters, tol, debug)
+
+objtrick(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ)) ? abs2(z)/2 : λ, zlk)
+
+function _CAOL(x, H0, R, λ, maxiters, tol)
     L = length(x)
     K = size(H0,2)
 
@@ -160,14 +162,12 @@ function _CAOL(x, H0, R, λ, maxiters, tol, debug)
     HΨZ = similar(H,K,K)
     UVt = HΨZ  # alias to the same memory
 
-    # initializations if debug is on
-    if debug
-        xconvh = deepcopy(zlk)
-        niter = 1;
-        H_trace = [];
-        H_convergence = [];
-        obj_fnc_vals = [];
-    end
+    # debug: initialization
+    niter = 1;
+    H_trace = [];
+    H_convergence = [];
+    obj_fnc_vals = [];
+    # debug
 
     # Main loop
     for t in 1:maxiters
@@ -177,15 +177,14 @@ function _CAOL(x, H0, R, λ, maxiters, tol, debug)
         fill!(ΨZ,zero(eltype(ΨZ)))
         for l in 1:L, k in 1:K
             imfilter!(zlk,xpad[l],(h[k],),NoPad(),Algorithm.FIR())
-            if debug
-                xconvh .= zlk
-            end
+
+            # debug: calculate the objective function
+            obj_fnc += objtrick(zlk,λ)
+            # debug
+
             zlk .= hard.(zlk,sqrt(2λ))
             imfilter!(ψztemp,xpad[l],(zlk,),NoPad(),Algorithm.FIR())
             ψz[k] .+= ψztemp
-            if debug # calculate the objective function
-                obj_fnc += 1/2*sosdiff(xconvh,zlk) + λ*norm(zlk,0)
-            end
         end
 
         # Update filter via polar factorization
@@ -195,29 +194,26 @@ function _CAOL(x, H0, R, λ, maxiters, tol, debug)
         mul!(UVt,F.U,F.Vt)
         mul!(H,H0,UVt)
 
-        # take care of some output
-        if debug
-            #push!(H_convergence, normdiff(H,Hprev)/norm(H))
-            push!(H_convergence, norm( H[:]-Hprev[:] ) / norm( H[:] ))
-            push!(H_trace, copy(H))
-            push!(obj_fnc_vals, obj_fnc)
-        end
+        # debug: save outputs
+        push!(H_convergence, normdiff(H,Hprev)/norm(H))
+        push!(H_trace, copy(H))
+        push!(obj_fnc_vals, obj_fnc)
+        # debug
 
         # Check convergence criteria
         if (normdiff(H,Hprev)/norm(H) < tol)
             niter = t
             break
         end
+
+        # debug: set niters
         if t == maxiters
             niter = t
         end
+        # debug
     end
 
-    if debug
-        return (h,niter,obj_fnc_vals, H_trace,H_convergence)
-    else
-        return h
-    end
+    return (h,niter,obj_fnc_vals, H_trace,H_convergence)
 end
 
 end # module
