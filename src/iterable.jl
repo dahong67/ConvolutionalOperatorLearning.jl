@@ -1,5 +1,7 @@
 # todos: parametric types, memory
 
+using IterTools
+
 import Base: iterate, IteratorSize, IsInfinite, SizeUnknown, eltype, tail
 
 struct FilterHaltIterable{T}
