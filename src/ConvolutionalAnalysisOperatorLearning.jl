@@ -241,4 +241,23 @@ function CAOL(x,H0,R,λ,niters,tol)
     return (h,niter,obj_fnc_vals,H_trace,H_convergence)
 end
 
+function CAOLfast(x,h0::Vector,λ,niters,tol)
+    R, K = size(h0[1]), length(h0)
+
+    H0 = similar(h0[1],prod(R),K) # vectorized form
+    for k in 1:K
+        H0[:,k] = vec(h0[k])
+    end
+
+    return CAOLfast(x,H0,R,λ,niters,tol)
+end
+
+function CAOLfast(x,H0,R,λ,niters,tol)
+    H = H0
+    for outs in Iterators.take(FilterHaltIterable(CAOLIterable(x,H0,R,λ),tol),niters)
+        H = outs[1]
+    end
+
+    return H
+end
 end # module
