@@ -123,18 +123,18 @@ function _CAOL7(xpad, h0, λ, maxiters, tol, debug)
     end
 end
 
-# todos: parametric types
+# todos: parametric types, memory
 
+import Base: iterate, IteratorSize, IsInfinite, SizeUnknown, eltype, tail
 
-import Base: iterate, IteratorSize, IsInfinite, SizeUnknown, tail
-
-struct FilterHaltIterable
-    it
+struct FilterHaltIterable{T}
+    it::T
     tol
 end
 IteratorSize(::Type{<:FilterHaltIterable}) = SizeUnknown()
+eltype(::Type{FilterHaltIterable{I}}) where {I} = eltype(I)
 
-function iterate(fh::FilterHaltIterable,state=(false,copy(fh.it.H0),))
+function iterate(fh::FilterHaltIterable{T},state=(false,copy(fh.it.H0),)) where{T}
     halt, Hprev, itstate = state[1], state[2], tail(tail(state))
     halt && return nothing
 
@@ -142,22 +142,25 @@ function iterate(fh::FilterHaltIterable,state=(false,copy(fh.it.H0),))
     itnext === nothing && return nothing
 
     H = itnext[2].H
-    haltnext = normdiff(H,Hprev)/norm(H) <= fh.tol
+    haltnext = (normdiff(H,Hprev)/norm(H) <= fh.tol)::Bool
 
     copyto!(Hprev,H)
     return itnext[1],(haltnext,Hprev,itnext[2])
 end
 
-struct CAOLIterable
+struct CAOLIterable{fmatT}
     x
-    H0
+    H0::fmatT
     R
     λ
 
-    CAOLIterable(x,H0,R,λ) = !(H0'H0 ≈ (1/prod(R))*I) ?
-        error("Initial filters not orthonormal.") : new(x,H0,R,λ)
+    CAOLIterable{fmatT}(x,H0,R,λ) where {fmatT} =
+        !(H0'H0 ≈ (1/prod(R))*I) ?
+            error("Initial filters not orthonormal.") : new(x,H0,R,λ)
 end
+CAOLIterable(x,H0::fmatT,R,λ) where {fmatT} = CAOLIterable{fmatT}(x,H0,R,λ)
 IteratorSize(::Type{<:CAOLIterable}) = IsInfinite()
+eltype(::Type{CAOLIterable{fmatT}}) where {fmatT} = Tuple{fmatT,eltype(fmatT)}
 
 struct CAOLState
     xpad   # padded images
@@ -194,7 +197,7 @@ function CAOLState(it::CAOLIterable)   # Form initial state from CAOLIterable
 end
 
 _obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ)) ? abs2(z)/2 : λ, zlk)
-function iterate(it::CAOLIterable,s::CAOLState=CAOLState(it))
+function iterate(it::CAOLIterable{fmatT},s::CAOLState=CAOLState(it)) where {fmatT}
     # Compute objective and ΨZ
     obj = zero(eltype(it.H0))
     fill!(s.ΨZ,zero(eltype(s.ΨZ)))
@@ -212,7 +215,7 @@ function iterate(it::CAOLIterable,s::CAOLState=CAOLState(it))
     mul!(s.UVt,F.U,F.Vt)
     mul!(s.H,it.H0,s.UVt)
 
-    return (s.H,obj),s
+    return (s.H,obj)::eltype(it),s
 end
 
 function CAOL(x,h0::Vector,λ,niters,tol)
