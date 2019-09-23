@@ -199,7 +199,7 @@ function iterate(it::CAOLIterable,s::CAOLState=CAOLState(it))
     mul!(s.UVt,F.U,F.Vt)
     mul!(s.H,it.H0,s.UVt)
 
-    return s,s
+    return (s.H,s.obj),s
 end
 
 function CAOL(x,h0::Vector,λ,niters)
@@ -214,8 +214,6 @@ function CAOL(x,h0::Vector,λ,niters)
 end
 
 function CAOL(x,H0,R,λ,niters)
-    h = nothing
-
     # debug: initialization
     niter = 0
     H_trace = []
@@ -224,18 +222,17 @@ function CAOL(x,H0,R,λ,niters)
     Hprev = copy(H0)
     # debug
 
-    for s in Iterators.take(CAOLIterable(x,H0,R,λ),niters)
-        h = s.h
-
+    for (H,obj) in Iterators.take(CAOLIterable(x,H0,R,λ),niters)
         # debug: save outputs
         niter += 1
-        push!(H_convergence, normdiff(s.H,Hprev)/norm(s.H))
-        push!(H_trace, copy(s.H))
-        push!(obj_fnc_vals,s.obj)
+        push!(H_convergence, normdiff(H,Hprev)/norm(H))
+        push!(H_trace, copy(H))
+        push!(obj_fnc_vals,obj)
         # debug
 
-        copyto!(Hprev,s.H)
+        copyto!(Hprev,H)
     end
+    h = [reshape(view(Hprev,:,k),map(n->1:n,R)) for k in 1:size(Hprev,2)]
 
     return (h,niter,obj_fnc_vals,H_trace,H_convergence)
 end
