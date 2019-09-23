@@ -8,7 +8,7 @@ sosdiff(a::Number,b::Number) = abs2(a-b)
 sosdiff(A,B) = sum(ab -> sosdiff(ab...),zip(A,B))
 
 hard(x, beta) = abs(x) < beta ? zero(x) : x
-_obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ)) ? abs2(z)/2 : λ, zlk)
+_obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ) ? abs2(z)/2 : λ), zlk)
 
 function CAOL(x,H0,R,λ,niters,tol,trace)
     @assert H0'H0 ≈ (1/prod(R))*I
