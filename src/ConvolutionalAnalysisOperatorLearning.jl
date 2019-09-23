@@ -182,16 +182,14 @@ end
 
 _obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ)) ? abs2(z)/2 : λ, zlk)
 function iterate(it::CAOLIterable,s::CAOLState=CAOLState(it))
-    L, K = length(it.x), length(s.h)
+    # Compute objective and ΨZ
     s.obj = zero(s.obj)
-
-    # Compute ΨZ
     fill!(s.ΨZ,zero(eltype(s.ΨZ)))
-    for l in 1:L, k in 1:K
-        imfilter!(s.zlk,s.xpad[l],(s.h[k],),NoPad(),Algorithm.FIR())
+    for xpadl in s.xpad, k in 1:length(s.h)
+        imfilter!(s.zlk,xpadl,(s.h[k],),NoPad(),Algorithm.FIR())
         s.obj += _obj(s.zlk,it.λ)
         s.zlk .= hard.(s.zlk,sqrt(2*it.λ))
-        imfilter!(s.ψztemp,s.xpad[l],(s.zlk,),NoPad(),Algorithm.FIR())
+        imfilter!(s.ψztemp,xpadl,(s.zlk,),NoPad(),Algorithm.FIR())
         s.ψz[k] .+= s.ψztemp
     end
 
