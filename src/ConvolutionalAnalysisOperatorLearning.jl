@@ -135,13 +135,18 @@ struct CAOLIterable
     H0
     R
     λ
+
+    CAOLIterable(x,H0,R,λ) = !(H0'H0 ≈ (1/prod(R))*I) ?
+        error("Initial filters not orthonormal.") : new(x,H0,R,λ)
 end
+IteratorSize(::Type{<:CAOLIterable}) = IsInfinite()
+eltype(::Type{CAOLIterable}) = CAOLState
 
 mutable struct CAOLState
-    xpad
-    H
-    h
-    obj
+    xpad   # padded images
+    H      # vectorized form
+    h      # natural form view
+    obj    # objective function
 
     # Temporary variables
     zlk
@@ -151,53 +156,40 @@ mutable struct CAOLState
     HΨZ
     UVt
 end
-
-IteratorSize(::Type{<:CAOLIterable}) = IsInfinite()
-eltype(::Type{CAOLIterable}) = CAOLState
-
-function iterate(it::CAOLIterable)
+function CAOLState(it::CAOLIterable)   # Form initial state from CAOLIterable
     K = size(it.H0,2)
 
-    # Initialize: padded versions of images
+    # Padded images
     xpad = [padarray(xl,Pad(:circular,ntuple(_->0,ndims(xl)),it.R)) for xl in it.x]
 
-    # Initialize: filters
+    # Initial filters
     H = copy(it.H0)
-    h = [reshape(view(H,:,k),map(n->1:n,it.R)) for k in 1:K] # natural form view
+    h = [reshape(view(H,:,k),map(n->1:n,it.R)) for k in 1:K]
 
-    obj = 0.
+    # Objective function value
+    obj = zero(eltype(it.H0))
 
-    # Initialize: temporary variables
-    zlk = similar(xpad[1],map(n->0:n-1,size(it.x[1])))
+    # Temporary variables
+    zlk = similar(first(it.x),map(n->0:n-1,size(first(it.x))))
     ΨZ = similar(H)
-    ψz = [reshape(view(ΨZ,:,k),axes(h[k])) for k in 1:K]
-    ψztemp = similar(ψz[1])
+    ψz = [reshape(view(ΨZ,:,k),map(n->1:n,it.R)) for k in 1:K]
+    ψztemp = similar(first(ψz))
     HΨZ = similar(H,K,K)
-    UVt = HΨZ  # alias to the same memory
+    UVt = HΨZ
 
-
-    s = CAOLState(xpad,H,h,obj,zlk,ΨZ,ψz,ψztemp,HΨZ,UVt)
-    return s,s
+    return CAOLState(xpad,H,h,obj,zlk,ΨZ,ψz,ψztemp,HΨZ,UVt)
 end
 
-objtrick(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ)) ? abs2(z)/2 : λ, zlk)
-
-function iterate(it::CAOLIterable,s::CAOLState)
+_obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ)) ? abs2(z)/2 : λ, zlk)
+function iterate(it::CAOLIterable,s::CAOLState=CAOLState(it))
     L, K = length(it.x), length(s.h)
-
-    # debug: calculate the objective function
-    s.obj = 0.
-    # debug
+    s.obj = zero(s.obj)
 
     # Compute ΨZ
     fill!(s.ΨZ,zero(eltype(s.ΨZ)))
     for l in 1:L, k in 1:K
         imfilter!(s.zlk,s.xpad[l],(s.h[k],),NoPad(),Algorithm.FIR())
-
-        # debug: calculate the objective function
-        s.obj += objtrick(s.zlk,it.λ)
-        # debug
-
+        s.obj += _obj(s.zlk,it.λ)
         s.zlk .= hard.(s.zlk,sqrt(2*it.λ))
         imfilter!(s.ψztemp,s.xpad[l],(s.zlk,),NoPad(),Algorithm.FIR())
         s.ψz[k] .+= s.ψztemp
@@ -212,7 +204,7 @@ function iterate(it::CAOLIterable,s::CAOLState)
     return s,s
 end
 
-function CAOL(x, h0, λ, niters)
+function CAOL(x,h0::Vector,λ,niters)
     R, K = size(h0[1]), length(h0)
 
     H0 = similar(h0[1],prod(R),K) # vectorized form
@@ -220,9 +212,10 @@ function CAOL(x, h0, λ, niters)
         H0[:,k] = vec(h0[k])
     end
 
-    # Verify (scaled) orthonormality of H0
-    @assert H0'H0 ≈ (1/prod(R))*I
+    return CAOL(x,H0,R,λ,niters)
+end
 
+function CAOL(x,H0,R,λ,niters)
     h = nothing
 
     # debug: initialization
@@ -233,7 +226,7 @@ function CAOL(x, h0, λ, niters)
     Hprev = copy(H0)
     # debug
 
-    for s in Iterators.take(Iterators.drop(CAOLIterable(x,H0,R,λ),1),niters)
+    for s in Iterators.take(CAOLIterable(x,H0,R,λ),niters)
         h = s.h
 
         # debug: save outputs
