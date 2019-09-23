@@ -10,15 +10,48 @@ sosdiff(A,B) = sum(ab -> sosdiff(ab...),zip(A,B))
 hard(x, beta) = abs(x) < beta ? zero(x) : x
 _obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ) ? abs2(z)/2 : λ), zlk)
 
-function CAOL(x,h0,λ;maxiters=1000,tol=1e-10,trace=false)
+"""
+    CAOL(x, h0, λ; maxiters = 2000, tol = 1e-13, trace = false)
+
+Learn convolutional filters from training data x, initialized by h0, with tuning
+parameter λ, and given maximum number of iterations and tolerance for convergence.
+
+# Arguments
+- x: vector of training data. The first dimension indexes the training samples.
+     x[i] is a single training example (e.g., a 2d image array)
+- h0: initialization for filter matrix. The first dimension indexes the number
+      of filters. h0[i] is a filter (e.g., 2D DCT approximation).
+      These must be orthogonal and have 2-norm of 1/(filter length)
+- λ: tuning parameter. Larger values put more emphasis on sparsity; smaller
+     values put more emphasis on data-fit.
+- maxiters=2000: maximum number of iterations for CAOL to run
+- tol=1e-13: tolerance for testing convergence between iterations
+- trace: set to true to store a trace of the filter matrix iterates
+
+# Outputs
+- h : final learned filters. Same size and arrangement as h0
+- (obj,Hdiff) : obj is a vector of all the objective function values and
+                Hdiff is a vector of the sequential differences used for
+                convergence, i.e., Hdiff[t] = norm(H[t]-H[t-1])/norm(H[t])
+                (omitted if trace is false)
+- Hs : a vector where Hs[i] is the filter matrix H after the ith iteration
+       (omitted if trace is false)
+
+# Examples
+```julia-repl
+julia> R1 = 3; # filters will be dimension R1 x R1
+julia> x = [[i+j for i in 1:10, j in 2:11]./21,
+            [i*j for i in 1:10, j in 2:11]./110]; # two example "images"
+julia> H0 = dct(Matrix(I,R1*R1,R1*R1),1)'/R1;
+julia> h0 = [reshape(H0[:,k], R1, R1) for k in 1:R1*R1];
+julia> h = CAOL(x, h0, 1e-4; maxiters=30)
+julia> h, (obj,Hdiff), Hs = CAOL(x, h0, 1e-4; maxiters=30, trace=true)
+```
+"""
+function CAOL(x,h0,λ;maxiters=2000,tol=1e-13,trace=false)
     out = _CAOL(x,h0,λ,maxiters,tol,trace)
     return trace ? out : out[1]
 end
-function CAOL(x,H0,R,λ;maxiters=1000,tol=1e-10,trace=false)
-    out = _CAOL(x,H0,R,λ,maxiters,tol,trace)
-    return trace ? out : out[1]
-end
-
 function _CAOL(x,h0,λ,maxiters,tol,trace)
     R, K = size(first(h0)), length(h0)
 
@@ -33,6 +66,45 @@ function _CAOL(x,h0,λ,maxiters,tol,trace)
     return h, (obj,Hdiff), Hs
 end
 
+"""
+    CAOL(x, H0, R, λ; maxiters = 2000, tol = 1e-13, trace = false)
+
+Equivalent to CAOL(x, h0, λ; maxiters = 2000, tol = 1e-13, trace = false) but
+with filters represented instead by the matrix H0 with filter size given by R.
+
+# Arguments
+- x: vector of training data. The first dimension indexes the training samples.
+     x[i] is a single training example (e.g., a 2d image array)
+- H0: initialization for filter matrix of size (length of filter) x (# of filters)
+- λ: tuning parameter. Larger values put more emphasis on sparsity; smaller
+     values put more emphasis on data-fit.
+- maxiters=2000: maximum number of iterations for CAOL to run
+- tol=1e-13: tolerance for testing convergence between iterations
+- trace: set to true to store a trace of the filter matrix iterates
+
+# Outputs
+- H : final learned filters. Same size and arrangement as H0
+- (obj,Hdiff) : obj is a vector of all the objective function values and
+                Hdiff is a vector of the sequential differences used for
+                convergence, i.e., Hdiff[t] = norm(H[t]-H[t-1])/norm(H[t])
+                (omitted if trace is false)
+- Hs : a vector where Hs[i] is the filter matrix H after the ith iteration
+       (omitted if trace is false)
+
+# Examples
+```julia-repl
+julia> R1 = 3; # filters will be dimension R1 x R1
+julia> x = [[i+j for i in 1:10, j in 2:11]./21,
+            [i*j for i in 1:10, j in 2:11]./110]; # two example "images"
+julia> H0 = dct(Matrix(I,R1*R1,R1*R1),1)'/R1;
+julia> H = CAOL(x, H0, (R1,R1), 1e-4; maxiters=30)
+julia> H, (obj,Hdiff), Hs = CAOL(x, H0, (R1,R1), 1e-4; maxiters=30, trace=true)
+```
+"""
+function CAOL(x,H0,R,λ;maxiters=2000,tol=1e-13,trace=false)
+    out = _CAOL(x,H0,R,λ,maxiters,tol,trace)
+    return trace ? out : out[1]
+end
 function _CAOL(x,H0,R,λ,maxiters,tol,trace)
     @assert H0'H0 ≈ (1/prod(R))*I
     K = size(H0,2)
