@@ -139,18 +139,17 @@ end
 
 mutable struct CAOLState
     xpad
-
     H
     h
+    obj
 
+    # Temporary variables
     zlk
     ΨZ
     ψz
     ψztemp
     HΨZ
     UVt
-
-    obj
 end
 
 IteratorSize(::Type{<:CAOLIterable}) = IsInfinite()
@@ -166,6 +165,8 @@ function iterate(it::CAOLIterable)
     H = copy(it.H0)
     h = [reshape(view(H,:,k),map(n->1:n,it.R)) for k in 1:K] # natural form view
 
+    obj = 0.
+
     # Initialize: temporary variables
     zlk = similar(xpad[1],map(n->0:n-1,size(it.x[1])))
     ΨZ = similar(H)
@@ -174,9 +175,8 @@ function iterate(it::CAOLIterable)
     HΨZ = similar(H,K,K)
     UVt = HΨZ  # alias to the same memory
 
-    obj = 0.
 
-    s = CAOLState(xpad,H,h,zlk,ΨZ,ψz,ψztemp,HΨZ,UVt,obj)
+    s = CAOLState(xpad,H,h,obj,zlk,ΨZ,ψz,ψztemp,HΨZ,UVt)
     return s,s
 end
 
