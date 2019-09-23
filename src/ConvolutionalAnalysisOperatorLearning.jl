@@ -142,7 +142,6 @@ mutable struct CAOLState
 
     H
     h
-    Hprev
 
     zlk
     ΨZ
@@ -151,11 +150,7 @@ mutable struct CAOLState
     HΨZ
     UVt
 
-    # debug: initialization
-    niter
-    H_trace
-    H_convergence
-    obj_fnc_vals
+    obj
 end
 
 IteratorSize(::Type{<:CAOLIterable}) = IsInfinite()
@@ -170,7 +165,6 @@ function iterate(it::CAOLIterable)
     # Initialize: filters
     H = copy(it.H0)
     h = [reshape(view(H,:,k),map(n->1:n,it.R)) for k in 1:K] # natural form view
-    Hprev = similar(H)                                       # for convergence test
 
     # Initialize: temporary variables
     zlk = similar(xpad[1],map(n->0:n-1,size(it.x[1])))
@@ -180,15 +174,9 @@ function iterate(it::CAOLIterable)
     HΨZ = similar(H,K,K)
     UVt = HΨZ  # alias to the same memory
 
-    # debug: initialization
-    niter = 0;
-    H_trace = [];
-    H_convergence = [];
-    obj_fnc_vals = [];
-    # debug
+    obj = 0.
 
-    s = CAOLState(xpad,H,h,Hprev,zlk,ΨZ,ψz,ψztemp,HΨZ,UVt,
-        niter,H_trace,H_convergence,obj_fnc_vals)
+    s = CAOLState(xpad,H,h,zlk,ΨZ,ψz,ψztemp,HΨZ,UVt,obj)
     return s,s
 end
 
@@ -196,7 +184,10 @@ objtrick(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ)) ? abs2(z)/2 : λ, zlk)
 
 function iterate(it::CAOLIterable,s::CAOLState)
     L, K = length(it.x), length(s.h)
-    obj_fnc = 0
+
+    # debug: calculate the objective function
+    s.obj = 0.
+    # debug
 
     # Compute ΨZ
     fill!(s.ΨZ,zero(eltype(s.ΨZ)))
@@ -204,7 +195,7 @@ function iterate(it::CAOLIterable,s::CAOLState)
         imfilter!(s.zlk,s.xpad[l],(s.h[k],),NoPad(),Algorithm.FIR())
 
         # debug: calculate the objective function
-        obj_fnc += objtrick(s.zlk,it.λ)
+        s.obj += objtrick(s.zlk,it.λ)
         # debug
 
         s.zlk .= hard.(s.zlk,sqrt(2*it.λ))
@@ -213,18 +204,10 @@ function iterate(it::CAOLIterable,s::CAOLState)
     end
 
     # Update filter via polar factorization
-    copyto!(s.Hprev,s.H)
     mul!(s.HΨZ,it.H0',s.ΨZ)
     F = svd!(s.HΨZ)
     mul!(s.UVt,F.U,F.Vt)
     mul!(s.H,it.H0,s.UVt)
-
-    # debug: save outputs
-    s.niter += 1
-    push!(s.H_convergence, normdiff(s.H,s.Hprev)/norm(s.H))
-    push!(s.H_trace, copy(s.H))
-    push!(s.obj_fnc_vals, obj_fnc)
-    # debug
 
     return s,s
 end
@@ -240,9 +223,30 @@ function CAOL(x, h0, λ, niters)
     # Verify (scaled) orthonormality of H0
     @assert H0'H0 ≈ (1/prod(R))*I
 
-    outs = last(collect(Iterators.take(CAOLIterable(x,H0,R,λ),niters+1)))
+    h = nothing
 
-    return (outs.h,outs.niter,outs.obj_fnc_vals,outs.H_trace,outs.H_convergence)
+    # debug: initialization
+    niter = 0
+    H_trace = []
+    H_convergence = []
+    obj_fnc_vals = []
+    Hprev = copy(H0)
+    # debug
+
+    for s in Iterators.take(Iterators.drop(CAOLIterable(x,H0,R,λ),1),niters)
+        h = s.h
+
+        # debug: save outputs
+        niter += 1
+        push!(H_convergence, normdiff(s.H,Hprev)/norm(s.H))
+        push!(H_trace, copy(s.H))
+        push!(obj_fnc_vals,s.obj)
+        # debug
+
+        copyto!(Hprev,s.H)
+    end
+
+    return (h,niter,obj_fnc_vals,H_trace,H_convergence)
 end
 
 end # module
