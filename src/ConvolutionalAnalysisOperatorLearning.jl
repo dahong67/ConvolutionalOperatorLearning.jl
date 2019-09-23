@@ -142,11 +142,10 @@ end
 IteratorSize(::Type{<:CAOLIterable}) = IsInfinite()
 eltype(::Type{CAOLIterable}) = CAOLState
 
-mutable struct CAOLState
+struct CAOLState
     xpad   # padded images
     H      # vectorized form
     h      # natural form view
-    obj    # objective function
 
     # Temporary variables
     zlk
@@ -166,9 +165,6 @@ function CAOLState(it::CAOLIterable)   # Form initial state from CAOLIterable
     H = copy(it.H0)
     h = [reshape(view(H,:,k),map(n->1:n,it.R)) for k in 1:K]
 
-    # Objective function value
-    obj = zero(eltype(it.H0))
-
     # Temporary variables
     zlk = similar(first(it.x),map(n->0:n-1,size(first(it.x))))
     ΨZ = similar(H)
@@ -177,17 +173,17 @@ function CAOLState(it::CAOLIterable)   # Form initial state from CAOLIterable
     HΨZ = similar(H,K,K)
     UVt = HΨZ
 
-    return CAOLState(xpad,H,h,obj,zlk,ΨZ,ψz,ψztemp,HΨZ,UVt)
+    return CAOLState(xpad,H,h,zlk,ΨZ,ψz,ψztemp,HΨZ,UVt)
 end
 
 _obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ)) ? abs2(z)/2 : λ, zlk)
 function iterate(it::CAOLIterable,s::CAOLState=CAOLState(it))
     # Compute objective and ΨZ
-    s.obj = zero(s.obj)
+    obj = zero(eltype(it.H0))
     fill!(s.ΨZ,zero(eltype(s.ΨZ)))
     for xpadl in s.xpad, k in 1:length(s.h)
         imfilter!(s.zlk,xpadl,(s.h[k],),NoPad(),Algorithm.FIR())
-        s.obj += _obj(s.zlk,it.λ)
+        obj += _obj(s.zlk,it.λ)
         s.zlk .= hard.(s.zlk,sqrt(2*it.λ))
         imfilter!(s.ψztemp,xpadl,(s.zlk,),NoPad(),Algorithm.FIR())
         s.ψz[k] .+= s.ψztemp
@@ -199,7 +195,7 @@ function iterate(it::CAOLIterable,s::CAOLState=CAOLState(it))
     mul!(s.UVt,F.U,F.Vt)
     mul!(s.H,it.H0,s.UVt)
 
-    return (s.H,s.obj),s
+    return (s.H,obj),s
 end
 
 function CAOL(x,h0::Vector,λ,niters)
