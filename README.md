@@ -140,7 +140,7 @@ and put into docs with LaTeX.
 
 ## Relevant papers
 
-[1] Il Yong Chun and Jeffrey A. Fessler, "Convolutional analysis operator learning: Acceleration and convergence," submitted, Jan. 2019.
+[1] Il Yong Chun and Jeffrey A. Fessler, "Convolutional analysis operator learning: Acceleration and convergence," IEEE Trans. Image Process. (to appear), Aug. 2019.
 [Online] Available: http://arxiv.org/abs/1802.05584
 
-[2] Caroline Crockett, David Hong, Il Yong Chun, Jeffrey A. Fessler, "Incorporating handcrafted filters in convolutional analysis operator learning for ill-posed inverse problems," Accepted to CAMSAP 2019.
+[2] Caroline Crockett, David Hong, Il Yong Chun, Jeffrey A. Fessler, "Incorporating handcrafted filters in convolutional analysis operator learning for ill-posed inverse problems," Accepted to IEEE CAMSAP 2019.
