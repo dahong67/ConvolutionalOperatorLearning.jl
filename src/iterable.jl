@@ -1,4 +1,7 @@
-# todos: parametric types, memory
+# 2019.10.06 (dahong): this was an attempt to implement the iterative algorithm
+# using iterables to make the code more modular, but this seemed to be less
+# memory efficient for some reason, so we are just using loops for now.
+# todos: figure out memory inefficiency, make types parametric as appropriate
 
 using IterTools
 
