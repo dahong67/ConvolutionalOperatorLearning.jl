@@ -2,7 +2,7 @@ module ConvolutionalAnalysisOperatorLearning
 
 using OffsetArrays, ImageFiltering, LinearAlgebra
 
-export CAOL, sosdiff
+export CAOL
 
 sosdiff(a::Number,b::Number) = abs2(a-b)
 sosdiff(A,B) = sum(ab -> sosdiff(ab...),zip(A,B))
