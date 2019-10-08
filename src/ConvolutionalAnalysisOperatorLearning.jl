@@ -12,6 +12,40 @@ hard(x, beta) = abs(x) < beta ? zero(x) : x
 _obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ) ? abs2(z)/2 : λ), zlk)
 
 ### Work on new implementation ###
+
+# Rough plan
+# function _CAOL(x,(H0,R),λ,maxiters,tol)
+#     ??, ??, ??, ??, = _init()
+#
+#     for t in 1:maxiters
+#         copyto!(Hprev,H)
+#         _updateΨZ!(??,??,??,false)
+#         _updateH!(??,??,??)
+#         ??? <= tol && break
+#     end
+#     return H
+# end
+# function _CAOLtrace(x,(H0,R),λ,maxiters,tol)
+#     ??, ??, ??, ??, = _init()
+#
+#     # Initialize trace
+#     ??
+#     ??
+#     ??
+#
+#     for t in 1:maxiters
+#         copyto!(Hprev,H)
+#         obj = _updateΨZ!(??,??,??,true)
+#         _updateH!(??,??,??)
+#
+#         # Store trace
+#         ?? = ??
+#
+#         ??? <= tol && break
+#     end
+#     return H
+# end
+
 function _CAOLnew(x,H0,R,λ,maxiters,tol,trace)
     @assert H0'H0 ≈ (1/prod(R))*I
     K = size(H0,2)
