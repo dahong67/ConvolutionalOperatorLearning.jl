@@ -5,7 +5,7 @@ using Test, ConvolutionalAnalysisOperatorLearning, FFTW, LinearAlgebra
 end
 # todo put actual tests
 
-# todo add tests of various signatures
+# need to test: various signatures, termination condition
 
 # Temporary tests that just compare against existing version
 @testset "Regression tests" begin

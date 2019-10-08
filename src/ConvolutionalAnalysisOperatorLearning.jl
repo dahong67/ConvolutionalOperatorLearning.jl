@@ -13,39 +13,6 @@ _obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ) ? abs2(z)/2 : λ), zlk)
 
 ### Work on new implementation ###
 
-# Rough plan
-# function _CAOL(x,(H0,R),λ,maxiters,tol)
-#     ??, ??, ??, ??, = _init()
-#
-#     for t in 1:maxiters
-#         copyto!(Hprev,H)
-#         _updateΨZ!(??,??,??,false)
-#         _updateH!(??,??,??)
-#         ??? <= tol && break
-#     end
-#     return H
-# end
-# function _CAOLtrace(x,(H0,R),λ,maxiters,tol)
-#     ??, ??, ??, ??, = _init()
-#
-#     # Initialize trace
-#     ??
-#     ??
-#     ??
-#
-#     for t in 1:maxiters
-#         copyto!(Hprev,H)
-#         obj = _updateΨZ!(??,??,??,true)
-#         _updateH!(??,??,??)
-#
-#         # Store trace
-#         ?? = ??
-#
-#         ??? <= tol && break
-#     end
-#     return H
-# end
-
 function _initvars(x,H0,R)
     K = size(H0,2)
 
