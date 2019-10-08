@@ -46,8 +46,7 @@ _obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ) ? abs2(z)/2 : λ), zlk)
 #     return H
 # end
 
-function _CAOLnew(x,H0,R,λ,maxiters,tol,trace)
-    @assert H0'H0 ≈ (1/prod(R))*I
+function _initvars(x,H0,R)
     K = size(H0,2)
 
     # Form padded images
@@ -66,36 +65,45 @@ function _CAOLnew(x,H0,R,λ,maxiters,tol,trace)
     HΨZ = similar(H,K,K)
     UVt = HΨZ
 
+    return xpad, H, h, Hprev, zlk, ΨZ, ψz, ψztemp, HΨZ, UVt
+end
+@inline function _updateΨZ!(ΨZ,ψz,xpad,h,λ,zlk,ψztemp)
+    obj = 0.0
+    fill!(ΨZ,zero(eltype(ΨZ)))
+    for xpadl in xpad, k in 1:length(h)
+        imfilter!(zlk,xpadl,(h[k],),NoPad(),Algorithm.FIR())
+        obj += _obj(zlk,λ)
+        zlk .= hard.(zlk,sqrt(2λ))
+        imfilter!(ψztemp,xpadl,(zlk,),NoPad(),Algorithm.FIR())
+        ψz[k] .+= ψztemp
+    end
+    return obj
+end
+function _updateH!(H,ΨZ,H0,HΨZ,UVt)
+    mul!(HΨZ,H0',ΨZ)
+    F = svd!(HΨZ)
+    mul!(UVt,F.U,F.Vt)
+    mul!(H,H0,UVt)
+end
+function _CAOLnew(x,H0,R,λ,maxiters,tol,trace)
+    @assert H0'H0 ≈ (1/prod(R))*I
+    xpad, H, h, Hprev, zlk, ΨZ, ψz, ψztemp, HΨZ, UVt = _initvars(x,H0,R)
+
     # Initialize trace of H's, objectives and Hdiff
     Hs = Array{typeof(H0)}(undef,maxiters)
     obj   = OffsetArray(fill(NaN,maxiters),-1)
     Hdiff = fill(NaN,maxiters)
 
     for t in 1:maxiters
-        copyto!(Hprev,H)
-
-        # Compute objective and update ΨZ
-        obj[t-1] = zero(obj[t-1])
-        fill!(ΨZ,zero(eltype(ΨZ)))
-        for xpadl in xpad, k in 1:K
-            imfilter!(zlk,xpadl,(h[k],),NoPad(),Algorithm.FIR())
-            obj[t-1] += _obj(zlk,λ)
-            zlk .= hard.(zlk,sqrt(2λ))
-            imfilter!(ψztemp,xpadl,(zlk,),NoPad(),Algorithm.FIR())
-            ψz[k] .+= ψztemp
-        end
-
-        # Update filter via polar factorization
-        mul!(HΨZ,H0',ΨZ)
-        F = svd!(HΨZ)
-        mul!(UVt,F.U,F.Vt)
-        mul!(H,H0,UVt)
+        copyto!(Hprev,H)                                 # Copy previous filters
+        obj[t-1] = _updateΨZ!(ΨZ,ψz,xpad,h,λ,zlk,ψztemp) # Compute objective, update ΨZ
+        _updateH!(H,ΨZ,H0,HΨZ,UVt)                       # Update filters as polar factor
 
         # Store trace of H if debug on
         trace && (Hs[t] = copy(H))
 
         # Terminate
-        Hdiff[t] = sqrt(sosdiff(Hprev,H) / (K/prod(R)))
+        Hdiff[t] = sqrt(sosdiff(Hprev,H) / (size(H0,2)/prod(R)))
         Hdiff[t] <= tol && break
     end
 
