@@ -2,7 +2,7 @@ module ConvolutionalAnalysisOperatorLearning
 
 using OffsetArrays, ImageFiltering, LinearAlgebra
 
-export CAOL, _CAOLnew
+export CAOL, _CAOLnew, _CAOLtracenew
 
 # Utility functions
 sosdiff(a::Number,b::Number) = abs2(a-b)
@@ -85,11 +85,24 @@ function _updateH!(H,ΨZ,H0,HΨZ,UVt)
     mul!(UVt,F.U,F.Vt)
     mul!(H,H0,UVt)
 end
-function _CAOLnew(x,H0,R,λ,maxiters,tol,trace)
+function _CAOLnew(x,H0,R,λ,maxiters,tol)
     @assert H0'H0 ≈ (1/prod(R))*I
     xpad, H, h, Hprev, zlk, ΨZ, ψz, ψztemp, HΨZ, UVt = _initvars(x,H0,R)
 
-    # Initialize trace of H's, objectives and Hdiff
+    for t in 1:maxiters
+        copyto!(Hprev,H)                      # Copy previous filters
+        _updateΨZ!(ΨZ,ψz,xpad,h,λ,zlk,ψztemp) # Update ΨZ
+        _updateH!(H,ΨZ,H0,HΨZ,UVt)            # Update filters as polar factor
+
+        sosdiff(Hprev,H) / (size(H,2)/size(H,1)) <= tol && break
+    end
+
+    return H
+end
+function _CAOLtracenew(x,H0,R,λ,maxiters,tol)
+    @assert H0'H0 ≈ (1/prod(R))*I
+    xpad, H, h, Hprev, zlk, ΨZ, ψz, ψztemp, HΨZ, UVt = _initvars(x,H0,R)
+
     Hs = Array{typeof(H0)}(undef,maxiters)
     obj   = OffsetArray(fill(NaN,maxiters),-1)
     Hdiff = fill(NaN,maxiters)
@@ -99,8 +112,7 @@ function _CAOLnew(x,H0,R,λ,maxiters,tol,trace)
         obj[t-1] = _updateΨZ!(ΨZ,ψz,xpad,h,λ,zlk,ψztemp) # Compute objective, update ΨZ
         _updateH!(H,ΨZ,H0,HΨZ,UVt)                       # Update filters as polar factor
 
-        # Store trace of H if debug on
-        trace && (Hs[t] = copy(H))
+        Hs[t] = copy(H)
 
         # Terminate
         Hdiff[t] = sqrt(sosdiff(Hprev,H) / (size(H0,2)/prod(R)))
