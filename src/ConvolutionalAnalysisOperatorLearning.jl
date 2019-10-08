@@ -103,24 +103,23 @@ function _CAOLtracenew(x,H0,R,λ,maxiters,tol)
     @assert H0'H0 ≈ (1/prod(R))*I
     xpad, H, h, Hprev, zlk, ΨZ, ψz, ψztemp, HΨZ, UVt = _initvars(x,H0,R)
 
-    Hs = Array{typeof(H0)}(undef,maxiters)
-    obj   = OffsetArray(fill(NaN,maxiters),-1)
-    Hdiff = fill(NaN,maxiters)
+    Htrace     = fill(H0,0)
+    objtrace   = fill(NaN,0)
+    Hdifftrace = fill(NaN,0)
 
     for t in 1:maxiters
-        copyto!(Hprev,H)                                 # Copy previous filters
-        obj[t-1] = _updateΨZ!(ΨZ,ψz,xpad,h,λ,zlk,ψztemp) # Compute objective, update ΨZ
-        _updateH!(H,ΨZ,H0,HΨZ,UVt)                       # Update filters as polar factor
+        copyto!(Hprev,H)                            # Copy previous filters
+        obj = _updateΨZ!(ΨZ,ψz,xpad,h,λ,zlk,ψztemp) # Compute objective, update ΨZ
+        _updateH!(H,ΨZ,H0,HΨZ,UVt)                  # Update filters as polar factor
 
-        Hs[t] = copy(H)
+        push!(Htrace,copy(H))
+        push!(objtrace,obj)
+        push!(Hdifftrace, sqrt(sosdiff(Hprev,H) / (size(H0,2)/prod(R))))
 
-        # Terminate
-        Hdiff[t] = sqrt(sosdiff(Hprev,H) / (size(H0,2)/prod(R)))
-        Hdiff[t] <= tol && break
+        Hdifftrace[end] <= tol && break
     end
 
-    niters = count(o -> !isnan(o),obj)
-    return H, (obj[0:niters-1],Hdiff[1:niters]), Hs[1:niters]
+    return H, Htrace, objtrace, Hdifftrace
 end
 
 ### Current implementation ###

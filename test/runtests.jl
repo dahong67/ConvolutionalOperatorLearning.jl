@@ -24,7 +24,7 @@ end
 	# for p in 0:K-1
 	for p in [3,7]
 		H, (obj,Hdiff), Hs = CAOL(x,H0[:,p+1:end],(rr,rr),λ,maxiters=maxiters,tol=1e-13,trace=true)
-		Hnew, (objnew,Hdiffnew), Hsnew = _CAOLtracenew(x,H0[:,p+1:end],(rr,rr),λ,maxiters,1e-13)
+		Hnew, Hsnew, objnew, Hdiffnew = _CAOLtracenew(x,H0[:,p+1:end],(rr,rr),λ,maxiters,1e-13)
 		@test H == Hnew
 		@test obj == objnew
 		@test Hdiff == Hdiffnew
