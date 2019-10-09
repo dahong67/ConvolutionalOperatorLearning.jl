@@ -2,7 +2,7 @@ module ConvolutionalAnalysisOperatorLearning
 
 using OffsetArrays, ImageFiltering, LinearAlgebra
 
-export CAOL, CAOLprev
+export CAOL, generatefilters, CAOLprev
 
 # Utility functions
 sosdiff(a::Number,b::Number) = abs2(a-b)
@@ -135,6 +135,18 @@ CAOL(X::AbstractArray,λ::Real,h0::SignalBank;
 CAOL(X::AbstractArray,λ::Real,H0R::SignalTuple;
         p=0,maxiters=2000,tol=1e-13,trace=false) =
     CAOL(eachslice(X,dims=N),λ,H0R; p=p,maxiters=maxiters,tol=tol,trace=trace)
+
+## Initializations
+using LinearAlgebra, FFTW
+
+generatefilters(type,dims) = generatefilters(Val(type),dims)
+function generatefilters(::Val{:DCT},dims)
+    @assert length(dims) == 2           "Only 2D DCT is implemented"      # todo
+    @assert all(i->i==first(dims),dims) "Only square DCT is implemented"  # todo
+    
+    temp = dct(Matrix(I,dims),1)
+    return kron(temp,temp)' / sqrt(prod(dims))
+end
 
 ### Previous implementation ###
 
