@@ -40,23 +40,4 @@ end
 		H = CAOL(x,λ,(H0[:,p+1:end],(rr,rr)),maxiters=maxiters,tol=1e-13,trace=false)
 		@test pH == H
 	end
-	println("# Trace = false")
-	@time CAOLprev(x,H0[:,3+1:end],(rr,rr),λ,maxiters=maxiters,tol=1e-13,trace=false)
-	println("--->")
-	@time CAOL(x,λ,(H0[:,3+1:end],(rr,rr)),maxiters=maxiters,tol=1e-13,trace=false)
-
-	println("# Trace = true")
-	@time CAOLprev(x,H0[:,3+1:end],(rr,rr),λ,maxiters=maxiters,tol=1e-13,trace=true)
-	println("--->")
-	@time CAOL(x,λ,(H0[:,3+1:end],(rr,rr)),maxiters=maxiters,tol=1e-13,trace=true)
-
-	println("# Longer run, trace = false")
-	@time CAOLprev(x,H0[:,3+1:end],(rr,rr),λ,maxiters=200,tol=1e-13,trace=false)
-	println("--->")
-	@time CAOL(x,λ,(H0[:,3+1:end],(rr,rr)),maxiters=200,tol=1e-13,trace=false)
-
-	println("# Longer run, trace = true")
-	@time CAOLprev(x,H0[:,3+1:end],(rr,rr),λ,maxiters=200,tol=1e-13,trace=true)
-	println("--->")
-	@time CAOL(x,λ,(H0[:,3+1:end],(rr,rr)),maxiters=200,tol=1e-13,trace=true)
 end
