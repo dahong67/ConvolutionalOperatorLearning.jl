@@ -167,12 +167,10 @@ export_markdown(stdout,b)
 ```
 to get a markdown representation of the results to `stdout`.
 
-To benchmark against a previous commit, e.g., `2e27f419`
-(the first commit with a benchmark script),
-use
+To benchmark against the previous commit use
 ```julia
 using PkgBenchmark
-b = judge("ConvolutionalAnalysisOperatorLearning","2e27f419")
+b = judge("ConvolutionalAnalysisOperatorLearning","HEAD~1")
 export_markdown(stdout,b)
 ```
 
