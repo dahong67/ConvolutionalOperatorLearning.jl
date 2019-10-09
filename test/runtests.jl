@@ -3,9 +3,16 @@ using Test, ConvolutionalAnalysisOperatorLearning, FFTW, LinearAlgebra
 @testset "Dummy tests" begin
 	@test true == true
 end
-# todo put actual tests
 
-# need to test: various signatures, termination condition
+# need to test:
+# + all signatures
+# + termination condition
+# + rectangular filters
+# + even-sized filters
+# + 1d filters/data
+# + 3d filters/data
+# + filter/data dimension mismatch, e.g., 1d filter but 2d data
+# + something related to speed / memory use
 
 # Temporary tests that just compare against existing version
 @testset "Regression tests" begin
