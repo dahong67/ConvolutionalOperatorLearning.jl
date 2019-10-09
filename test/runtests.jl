@@ -15,7 +15,7 @@ include(joinpath(@__DIR__,"reference.jl"))
 		λ, iters = 1e-4, 30
 		for p in 0:2:8
 			refH, (refobjtrace, refHdifftrace), refHtrace =
-				CAOLprev(x,H0[:,p+1:end],R,λ,maxiters=iters,tol=1e-13,trace=true)
+				Reference.CAOL(x,H0[:,p+1:end],R,λ,maxiters=iters,tol=1e-13,trace=true)
 			H, Htrace, objtrace, Hdifftrace =
 				CAOL(x,λ,(H0[:,p+1:end],R),maxiters=iters,tol=1e-13,trace=true)
 

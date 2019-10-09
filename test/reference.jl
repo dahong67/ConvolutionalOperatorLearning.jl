@@ -1,10 +1,12 @@
 # Reference implementation
 
+module Reference
+
 # todo: simplify to better serve as a highly trusted reference implementation
 #       goal is to make it simple and easy to verify without worrying too much
 #       about computational speed or memory use
 
-### CAOLprev copied from the package ###
+### Previous CAOL copied from the package ###
 
 using OffsetArrays, ImageFiltering, LinearAlgebra
 
@@ -15,7 +17,7 @@ hard(x, beta) = abs(x) < beta ? zero(x) : x
 _obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ) ? abs2(z)/2 : λ), zlk)
 
 """
-    CAOLprev(x, h0, λ; maxiters = 2000, tol = 1e-13, trace = false)
+    CAOL(x, h0, λ; maxiters = 2000, tol = 1e-13, trace = false)
 
 Learn convolutional filters from training data x, initialized by h0, with tuning
 parameter λ, and given maximum number of iterations and tolerance for convergence.
@@ -48,15 +50,15 @@ julia> x = [[i+j for i in 1:10, j in 2:11]./21,
             [i*j for i in 1:10, j in 2:11]./110]; # two example "images"
 julia> H0 = dct(Matrix(I,R1*R1,R1*R1),1)'/R1;
 julia> h0 = [reshape(H0[:,k], R1, R1) for k in 1:R1*R1];
-julia> h = CAOLprev(x, h0, 1e-4; maxiters=30)
-julia> h, (obj,Hdiff), Hs = CAOLprev(x, h0, 1e-4; maxiters=30, trace=true)
+julia> h = CAOL(x, h0, 1e-4; maxiters=30)
+julia> h, (obj,Hdiff), Hs = CAOL(x, h0, 1e-4; maxiters=30, trace=true)
 ```
 """
-function CAOLprev(x,h0,λ;maxiters=2000,tol=1e-13,trace=false)
-    out = _CAOLprev(x,h0,λ,maxiters,tol,trace)
+function CAOL(x,h0,λ;maxiters=2000,tol=1e-13,trace=false)
+    out = _CAOL(x,h0,λ,maxiters,tol,trace)
     return trace ? out : out[1]
 end
-function _CAOLprev(x,h0,λ,maxiters,tol,trace)
+function _CAOL(x,h0,λ,maxiters,tol,trace)
     R, K = size(first(h0)), length(h0)
 
     H0 = similar(first(h0),prod(R),K)
@@ -64,16 +66,16 @@ function _CAOLprev(x,h0,λ,maxiters,tol,trace)
         H0[:,k] = vec(h0[k])
     end
 
-    H, (obj,Hdiff), Hs = _CAOLprev(x,H0,R,λ,maxiters,tol,trace)
+    H, (obj,Hdiff), Hs = _CAOL(x,H0,R,λ,maxiters,tol,trace)
     h = [reshape(H[:,k],R) for k in 1:K]
 
     return h, (obj,Hdiff), Hs
 end
 
 """
-    CAOLprev(x, H0, R, λ; maxiters = 2000, tol = 1e-13, trace = false)
+    CAOL(x, H0, R, λ; maxiters = 2000, tol = 1e-13, trace = false)
 
-Equivalent to CAOLprev(x, h0, λ; maxiters = 2000, tol = 1e-13, trace = false) but
+Equivalent to CAOL(x, h0, λ; maxiters = 2000, tol = 1e-13, trace = false) but
 with filters represented instead by the matrix H0 with filter size given by R.
 
 # Arguments
@@ -101,15 +103,15 @@ julia> R1 = 3; # filters will be dimension R1 x R1
 julia> x = [[i+j for i in 1:10, j in 2:11]./21,
             [i*j for i in 1:10, j in 2:11]./110]; # two example "images"
 julia> H0 = dct(Matrix(I,R1*R1,R1*R1),1)'/R1;
-julia> H = CAOLprev(x, H0, (R1,R1), 1e-4; maxiters=30)
-julia> H, (obj,Hdiff), Hs = CAOLprev(x, H0, (R1,R1), 1e-4; maxiters=30, trace=true)
+julia> H = CAOL(x, H0, (R1,R1), 1e-4; maxiters=30)
+julia> H, (obj,Hdiff), Hs = CAOL(x, H0, (R1,R1), 1e-4; maxiters=30, trace=true)
 ```
 """
-function CAOLprev(x,H0,R,λ;maxiters=2000,tol=1e-13,trace=false)
-    out = _CAOLprev(x,H0,R,λ,maxiters,tol,trace)
+function CAOL(x,H0,R,λ;maxiters=2000,tol=1e-13,trace=false)
+    out = _CAOL(x,H0,R,λ,maxiters,tol,trace)
     return trace ? out : out[1]
 end
-function _CAOLprev(x,H0,R,λ,maxiters,tol,trace)
+function _CAOL(x,H0,R,λ,maxiters,tol,trace)
     @assert H0'H0 ≈ (1/prod(R))*I
     K = size(H0,2)
 
@@ -164,4 +166,6 @@ function _CAOLprev(x,H0,R,λ,maxiters,tol,trace)
 
     niters = count(o -> !isnan(o),obj)
     return H, (obj[0:niters-1],Hdiff[1:niters]), Hs[1:niters]
+end
+
 end
