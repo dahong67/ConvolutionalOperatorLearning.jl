@@ -24,32 +24,32 @@ end
 	# for p in 0:K-1
 	for p in [3,7]
 		H, (obj,Hdiff), Hs = CAOL(x,H0[:,p+1:end],(rr,rr),λ,maxiters=maxiters,tol=1e-13,trace=true)
-		Hnew, Hsnew, objnew, Hdiffnew = _CAOLtracenew(x,H0[:,p+1:end],(rr,rr),λ,maxiters,1e-13)
+		Hnew, Hsnew, objnew, Hdiffnew = CAOLnew(x,λ,(H0[:,p+1:end],(rr,rr)),maxiters=maxiters,tol=1e-13,trace=true)
 		@test H == Hnew
 		@test obj == objnew
 		@test Hdiff == Hdiffnew
 		@test Hs == Hsnew
 
-		Hnew = _CAOLnew(x,H0[:,p+1:end],(rr,rr),λ,maxiters,1e-13)
+		Hnew = CAOLnew(x,λ,(H0[:,p+1:end],(rr,rr)),maxiters=maxiters,tol=1e-13,trace=false)
 		@test H == Hnew
 	end
 	println("# Trace = false")
 	@time CAOL(x,H0[:,3+1:end],(rr,rr),λ,maxiters=maxiters,tol=1e-13,trace=false)
 	println("--->")
-	@time _CAOLnew(x,H0[:,3+1:end],(rr,rr),λ,maxiters,1e-13)
+	@time CAOLnew(x,λ,(H0[:,3+1:end],(rr,rr)),maxiters=maxiters,tol=1e-13,trace=false)
 
 	println("# Trace = true")
 	@time CAOL(x,H0[:,3+1:end],(rr,rr),λ,maxiters=maxiters,tol=1e-13,trace=true)
 	println("--->")
-	@time _CAOLtracenew(x,H0[:,3+1:end],(rr,rr),λ,maxiters,1e-13)
+	@time CAOLnew(x,λ,(H0[:,3+1:end],(rr,rr)),maxiters=maxiters,tol=1e-13,trace=true)
 
 	println("# Longer run, trace = false")
 	@time CAOL(x,H0[:,3+1:end],(rr,rr),λ,maxiters=200,tol=1e-13,trace=false)
 	println("--->")
-	@time _CAOLnew(x,H0[:,3+1:end],(rr,rr),λ,200,1e-13)
+	@time CAOLnew(x,λ,(H0[:,3+1:end],(rr,rr)),maxiters=200,tol=1e-13,trace=false)
 
 	println("# Longer run, trace = true")
 	@time CAOL(x,H0[:,3+1:end],(rr,rr),λ,maxiters=200,tol=1e-13,trace=true)
 	println("--->")
-	@time _CAOLtracenew(x,H0[:,3+1:end],(rr,rr),λ,200,1e-13)
+	@time CAOLnew(x,λ,(H0[:,3+1:end],(rr,rr)),maxiters=200,tol=1e-13,trace=true)
 end

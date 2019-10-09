@@ -2,7 +2,7 @@ module ConvolutionalAnalysisOperatorLearning
 
 using OffsetArrays, ImageFiltering, LinearAlgebra
 
-export CAOL, _CAOLnew, _CAOLtracenew
+export CAOL, CAOLnew
 
 # Utility functions
 sosdiff(a::Number,b::Number) = abs2(a-b)
@@ -12,7 +12,9 @@ hard(x, beta) = abs(x) < beta ? zero(x) : x
 _obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ) ? abs2(z)/2 : λ), zlk)
 
 ### Work on new implementation ###
-_filtermatrix(hlist) = hcat([vec(h) for h in hlist]...)::Matrix{eltype(first(hlist))}
+_filtermatrix(hlist) =
+    (hcat([vec(h) for h in hlist]...)::Matrix{eltype(first(hlist))},
+     size(first(hlist)))
 _filterlist(Hmatrix,R) = [reshape(h,map(n->1:n,R)) for h in eachcol(Hmatrix)]
 
 function _initvars(x,H0,R)
@@ -90,6 +92,46 @@ function _CAOLtracenew(x,H0,R,λ,maxiters,tol)
 
     return H, Htrace, objtrace, Hdifftrace
 end
+
+SignalBank{N}  = AbstractVector{<:AbstractArray{<:Any,N}}    # List of arrays
+SignalTuple{N} = Tuple{<:AbstractMatrix,NTuple{N,<:Integer}} # Columns with shape
+
+# x::SignalBank, h0::SignalBank
+function CAOLnew(x::SignalBank{N},λ::Real,h0::SignalBank{N};
+        p=0,maxiters=2000,tol=1e-13,trace=false) where N
+    @assert p < length(h0)
+
+    H0,R = _filtermatrix(h0[p+1:end])
+    if !trace
+        H = _CAOLnew(x,H0,R,λ,maxiters,tol)
+        return [h0[1:p]; Array.(_filterlist(H,R))]
+    else
+        H, Htrace, objtrace, Hdifftrace = _CAOLtracenew(x,H0,R,λ,maxiters,tol)
+        return [h0[1:p]; Array.(_filterlist(H,R))], _filterlist.(Htrace), objtrace, Hdifftrace
+    end
+end
+
+# x::SignalBank, (H0,R)::SignalTuple
+function CAOLnew(x::SignalBank{N},λ::Real,(H0,R)::SignalTuple{N};
+        p=0,maxiters=2000,tol=1e-13,trace=false) where N
+    @assert p < size(H0,2)
+
+    if !trace
+        H = _CAOLnew(x,H0[:,p+1:end],R,λ,maxiters,tol)
+        return [H0[:,1:p] H]
+    else
+        H, Htrace, objtrace, Hdifftrace = _CAOLtracenew(x,H0[:,p+1:end],R,λ,maxiters,tol)
+        return [H0[:,1:p] H], Htrace, objtrace, Hdifftrace
+    end
+end
+
+# x::AbstractArray
+CAOLnew(X::AbstractArray{T,N},λ::Real,h0::SignalBank{N};
+        p=0,maxiters=2000,tol=1e-13,trace=false) where {T,N} =
+    CAOLnew(eachslice(X,dims=N),λ,h0; p=p,maxiters=maxiters,tol=tol,trace=trace)
+CAOLnew(X::AbstractArray{T,N},λ::Real,H0R::SignalTuple{N};
+        p=0,maxiters=2000,tol=1e-13,trace=false) where {T,N} =
+    CAOLnew(eachslice(X,dims=N),λ,H0R; p=p,maxiters=maxiters,tol=tol,trace=trace)
 
 ### Current implementation ###
 
