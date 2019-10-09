@@ -1,9 +1,33 @@
-using Test, ConvolutionalAnalysisOperatorLearning, FFTW, LinearAlgebra
+using Test, ConvolutionalAnalysisOperatorLearning
 
+# Load reference implementation
 include(joinpath(@__DIR__,"reference.jl"))
 
-@testset "Dummy tests" begin
-	@test true == true
+# Random gaussian images (2D)
+@testset "Random gaussian images (2D)" begin
+	x = [randn(128,128) for _ in 1:62]
+
+	# 3 x 3 filters
+	@testset "3 x 3 filters" begin
+		R = (3,3)
+		H0 = generatefilters(:DCT,R)
+
+		λ, iters = 1e-4, 30
+		for p in 0:2:8
+			refH, (refobjtrace, refHdifftrace), refHtrace =
+				CAOLprev(x,H0[:,p+1:end],R,λ,maxiters=iters,tol=1e-13,trace=true)
+			H, Htrace, objtrace, Hdifftrace =
+				CAOL(x,λ,(H0[:,p+1:end],R),maxiters=iters,tol=1e-13,trace=true)
+
+			@test H          == refH
+			@test Htrace     == refHtrace
+			@test objtrace   == refobjtrace
+			@test Hdifftrace == refHdifftrace
+
+			H = CAOL(x,λ,(H0[:,p+1:end],R),maxiters=iters,tol=1e-13)
+			@test H == refH
+		end
+	end
 end
 
 # need to test:
@@ -15,31 +39,3 @@ end
 # + 3d filters/data
 # + filter/data dimension mismatch, e.g., 1d filter but 2d data
 # + something related to speed / memory use
-
-# Temporary tests that just compare against existing version
-@testset "Regression tests" begin
-	N1,N2,L = 128, 128, 62
-	rr = 3
-	R = rr^2
-	K = R
-
-	# H0 = Matrix(qr!(randn(R,K)).Q) / sqrt(R)
-	H0 = dct(Matrix(I,K,K),1)'/sqrt(R)
-	h0 = [reshape(H0[:,k],rr,rr) for k in 1:K]
-	x = [randn(N1,N2) for l in 1:L]
-	λ = 0.0001
-	maxiters = 30
-
-	# for p in 0:K-1
-	for p in [3,7]
-		pH, (pobj,pHdiff), pHs = CAOLprev(x,H0[:,p+1:end],(rr,rr),λ,maxiters=maxiters,tol=1e-13,trace=true)
-		H, Hs, obj, Hdiff = CAOL(x,λ,(H0[:,p+1:end],(rr,rr)),maxiters=maxiters,tol=1e-13,trace=true)
-		@test pH == H
-		@test pobj == obj
-		@test pHdiff == Hdiff
-		@test pHs == Hs
-
-		H = CAOL(x,λ,(H0[:,p+1:end],(rr,rr)),maxiters=maxiters,tol=1e-13,trace=false)
-		@test pH == H
-	end
-end
