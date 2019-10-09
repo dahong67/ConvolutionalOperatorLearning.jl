@@ -1,154 +1,18 @@
-module ConvolutionalAnalysisOperatorLearning
+# Reference implementation
+
+# todo: simplify to better serve as a highly trusted reference implementation
+#       goal is to make it simple and easy to verify without worrying too much
+#       about computational speed or memory use
+
+### CAOLprev copied from the package ###
 
 using OffsetArrays, ImageFiltering, LinearAlgebra
 
-export CAOL, generatefilters
-
-# Utility functions
 sosdiff(a::Number,b::Number) = abs2(a-b)
 sosdiff(A,B) = sum(ab -> sosdiff(ab...),zip(A,B))
 
 hard(x, beta) = abs(x) < beta ? zero(x) : x
 _obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ) ? abs2(z)/2 : λ), zlk)
-
-_filtermatrix(hlist) =
-    (hcat([vec(h) for h in hlist]...)::Matrix{eltype(first(hlist))},
-     size(first(hlist)))
-_filterlist(Hmatrix,R) = [reshape(h,map(n->1:n,R)) for h in eachcol(Hmatrix)]
-
-# Core steps
-function _initvars(x,H0,R)
-    K = size(H0,2)
-
-    # Form padded images
-    xpad = [padarray(xl,Pad(:circular,ntuple(_->0,ndims(xl)),R)) for xl in x]
-
-    # Initialize filters
-    H = copy(H0)
-    h = _filterlist(H,R)
-    Hprev = similar(H)  # for stopping condition
-
-    # Initialize temporary variables
-    zlk = similar(first(x),map(n->0:n-1,size(first(x))))
-    ΨZ = similar(H)
-    ψz = _filterlist(ΨZ,R)
-    ψztemp = similar(first(ψz))
-    HΨZ = similar(H,K,K)
-    UVt = HΨZ
-
-    return xpad, H, h, Hprev, zlk, ΨZ, ψz, ψztemp, HΨZ, UVt
-end
-@inline function _updateΨZ!(ΨZ,ψz,xpad,h,λ,zlk,ψztemp)
-    obj = 0.0
-    fill!(ΨZ,zero(eltype(ΨZ)))
-    for xpadl in xpad, k in 1:length(h)
-        imfilter!(zlk,xpadl,(h[k],),NoPad(),Algorithm.FIR())
-        obj += _obj(zlk,λ)
-        zlk .= hard.(zlk,sqrt(2λ))
-        imfilter!(ψztemp,xpadl,(zlk,),NoPad(),Algorithm.FIR())
-        ψz[k] .+= ψztemp
-    end
-    return obj
-end
-function _updateH!(H,ΨZ,H0,HΨZ,UVt)
-    mul!(HΨZ,H0',ΨZ)
-    F = svd!(HΨZ)
-    mul!(UVt,F.U,F.Vt)
-    mul!(H,H0,UVt)
-end
-
-# Core CAOL
-function _CAOL(x,H0,R,λ,maxiters,tol)
-    @assert H0'H0 ≈ (1/prod(R))*I
-    xpad, H, h, Hprev, zlk, ΨZ, ψz, ψztemp, HΨZ, UVt = _initvars(x,H0,R)
-
-    for t in 1:maxiters
-        copyto!(Hprev,H)                      # Copy previous filters
-        _updateΨZ!(ΨZ,ψz,xpad,h,λ,zlk,ψztemp) # Update ΨZ
-        _updateH!(H,ΨZ,H0,HΨZ,UVt)            # Update filters as polar factor
-
-        sosdiff(Hprev,H) / (size(H,2)/size(H,1)) <= tol && break
-    end
-
-    return H
-end
-function _CAOLtrace(x,H0,R,λ,maxiters,tol)
-    @assert H0'H0 ≈ (1/prod(R))*I
-    xpad, H, h, Hprev, zlk, ΨZ, ψz, ψztemp, HΨZ, UVt = _initvars(x,H0,R)
-
-    Htrace     = fill(H0,0)
-    objtrace   = fill(NaN,0)
-    Hdifftrace = fill(NaN,0)
-
-    for t in 1:maxiters
-        copyto!(Hprev,H)                            # Copy previous filters
-        obj = _updateΨZ!(ΨZ,ψz,xpad,h,λ,zlk,ψztemp) # Compute objective, update ΨZ
-        _updateH!(H,ΨZ,H0,HΨZ,UVt)                  # Update filters as polar factor
-
-        push!(Htrace,copy(H))
-        push!(objtrace,obj)
-        push!(Hdifftrace, sqrt(sosdiff(Hprev,H) / (size(H0,2)/prod(R))))
-
-        Hdifftrace[end] <= tol && break
-    end
-
-    return H, Htrace, objtrace, Hdifftrace
-end
-
-# Signatures
-SignalBank{N}  = AbstractVector{<:AbstractArray{<:Any,N}}    # List of arrays
-SignalTuple{N} = Tuple{<:AbstractMatrix,NTuple{N,<:Integer}} # Columns with shape
-
-# x::SignalBank, h0::SignalBank
-function CAOL(x::SignalBank{N},λ::Real,h0::SignalBank{N};
-        p=0,maxiters=2000,tol=1e-13,trace=false) where N
-    @assert p < length(h0)
-
-    H0,R = _filtermatrix(h0[p+1:end])
-    if !trace
-        H = _CAOL(x,H0,R,λ,maxiters,tol)
-        return [h0[1:p]; Array.(_filterlist(H,R))]
-    else
-        H, Htrace, objtrace, Hdifftrace = _CAOLtrace(x,H0,R,λ,maxiters,tol)
-        return [h0[1:p]; Array.(_filterlist(H,R))], _filterlist.(Htrace), objtrace, Hdifftrace
-    end
-end
-
-# x::SignalBank, (H0,R)::SignalTuple
-function CAOL(x::SignalBank{N},λ::Real,(H0,R)::SignalTuple{N};
-        p=0,maxiters=2000,tol=1e-13,trace=false) where N
-    @assert p < size(H0,2)
-
-    if !trace
-        H = _CAOL(x,H0[:,p+1:end],R,λ,maxiters,tol)
-        return [H0[:,1:p] H]
-    else
-        H, Htrace, objtrace, Hdifftrace = _CAOLtrace(x,H0[:,p+1:end],R,λ,maxiters,tol)
-        return [H0[:,1:p] H], Htrace, objtrace, Hdifftrace
-    end
-end
-
-# x::AbstractArray
-CAOL(X::AbstractArray,λ::Real,h0::SignalBank;
-        p=0,maxiters=2000,tol=1e-13,trace=false) =
-    CAOL(eachslice(X,dims=N),λ,h0; p=p,maxiters=maxiters,tol=tol,trace=trace)
-CAOL(X::AbstractArray,λ::Real,H0R::SignalTuple;
-        p=0,maxiters=2000,tol=1e-13,trace=false) =
-    CAOL(eachslice(X,dims=N),λ,H0R; p=p,maxiters=maxiters,tol=tol,trace=trace)
-
-## Initializations
-using LinearAlgebra, FFTW
-
-generatefilters(type,dims) = generatefilters(Val(type),dims)
-function generatefilters(::Val{:DCT},dims)
-    @assert length(dims) == 2           "Only 2D DCT is implemented"      # todo
-    @assert all(i->i==first(dims),dims) "Only square DCT is implemented"  # todo
-    
-    temp = dct(Matrix(I,dims),1)
-    return kron(temp,temp)' / sqrt(prod(dims))
-end
-
-### Previous implementation ###
 
 """
     CAOLprev(x, h0, λ; maxiters = 2000, tol = 1e-13, trace = false)
@@ -301,5 +165,3 @@ function _CAOLprev(x,H0,R,λ,maxiters,tol,trace)
     niters = count(o -> !isnan(o),obj)
     return H, (obj[0:niters-1],Hdiff[1:niters]), Hs[1:niters]
 end
-
-end # module

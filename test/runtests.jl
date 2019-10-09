@@ -1,5 +1,7 @@
 using Test, ConvolutionalAnalysisOperatorLearning, FFTW, LinearAlgebra
 
+include(joinpath(@__DIR__,"reference.jl"))
+
 @testset "Dummy tests" begin
 	@test true == true
 end
