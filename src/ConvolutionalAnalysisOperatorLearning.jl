@@ -12,6 +12,8 @@ hard(x, beta) = abs(x) < beta ? zero(x) : x
 _obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ) ? abs2(z)/2 : λ), zlk)
 
 ### Work on new implementation ###
+_filtermatrix(hlist) = hcat([vec(h) for h in hlist]...)::Matrix{eltype(first(hlist))}
+_filterlist(Hmatrix,R) = [reshape(h,map(n->1:n,R)) for h in eachcol(Hmatrix)]
 
 function _initvars(x,H0,R)
     K = size(H0,2)
@@ -21,13 +23,13 @@ function _initvars(x,H0,R)
 
     # Initialize filters
     H = copy(H0)
-    h = [reshape(view(H,:,k),map(n->1:n,R)) for k in 1:K]
+    h = _filterlist(H,R)
     Hprev = similar(H)  # for stopping condition
 
     # Initialize temporary variables
     zlk = similar(first(x),map(n->0:n-1,size(first(x))))
     ΨZ = similar(H)
-    ψz = [reshape(view(ΨZ,:,k),map(n->1:n,R)) for k in 1:K]
+    ψz = _filterlist(ΨZ,R)
     ψztemp = similar(first(ψz))
     HΨZ = similar(H,K,K)
     UVt = HΨZ
