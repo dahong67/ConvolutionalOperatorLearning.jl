@@ -144,3 +144,28 @@ and put into docs with LaTeX.
 [Online] Available: http://arxiv.org/abs/1802.05584
 
 [2] Caroline Crockett, David Hong, Il Yong Chun, Jeffrey A. Fessler, "Incorporating handcrafted filters in convolutional analysis operator learning for ill-posed inverse problems," Accepted to IEEE CAMSAP 2019.
+
+## Benchmarking
+
+A small benchmark script is in `benchmark/benchmarks.jl`.
+To use this, you will need to install
+[`PkgBenchmark.jl`](https://github.com/JuliaCI/PkgBenchmark.jl)
+and [`BenchmarkTools.jl`](https://www.github.com/JuliaCI/BenchmarkTools.jl).
+Then run
+```julia
+using PkgBenchmark
+b = benchmarkpkg("ConvolutionalAnalysisOperatorLearning")
+export_markdown(stdout,b)
+```
+to get a markdown representation of the results to `stdout`.
+
+To benchmark against a previous commit, e.g., `2e27f419`
+(the first commit with a benchmark script),
+use
+```julia
+using PkgBenchmark
+b = judge("ConvolutionalAnalysisOperatorLearning","2e27f419")
+export_markdown(stdout,b)
+```
+
+**TODO:** add more benchmarks, benchmark individual updates
