@@ -24,4 +24,6 @@ SUITE["CAOL 2D"]["trace,200"]   = @benchmarkable CAOL($x,$λ,($H0,$R),maxiters=2
 for p in 2:2:size(H0,2)-1
     SUITE["CAOL 2D"]["p=$p"] = @benchmarkable CAOL($x,$λ,($H0,$R),p=$p,maxiters=30)
 end
+
+
 # todo: add more benchmarks, incorporate in package ci appropriately?
