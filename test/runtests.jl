@@ -10,12 +10,12 @@ include(joinpath(@__DIR__,"Reference.jl"))
 	x = [randn(rng,128,128) for _ in 1:62]
 
 	# 3 x 3 filters
-	@testset "3 x 3 filters" begin
-		R = (3,3)
-		H0 = generatefilters(:DCT,R)
+	R = (3,3)
+	H0 = generatefilters(:DCT,R)
 
-		λ, iters = 1e-4, 4
-		for p in 0:2:8
+	λ, iters = 1e-4, 4
+	for p in 0:2:8
+		@testset "3 x 3 filters (p = $p)" begin
 			refH, refHtrace, refobjtrace, refHdifftrace =
 				Reference.CAOL(x,λ,H0[:,p+1:end],R,iters,1e-13)
 			H, Htrace, objtrace, Hdifftrace =
@@ -32,12 +32,12 @@ include(joinpath(@__DIR__,"Reference.jl"))
 	end
 
 	# 4 x 4 filters
-	@testset "4 x 4 filters" begin
-		R = (4,4)
-		H0 = generatefilters(:DCT,R)
+	R = (4,4)
+	H0 = generatefilters(:DCT,R)
 
-		λ, iters = 1e-4, 4
-		for p in 0:5:15
+	λ, iters = 1e-4, 4
+	for p in 0:5:15
+		@testset "4 x 4 filters (p = $p)" begin
 			refH, refHtrace, refobjtrace, refHdifftrace =
 				Reference.CAOL(x,λ,H0[:,p+1:end],R,iters,1e-13)
 			H, Htrace, objtrace, Hdifftrace =
@@ -64,12 +64,12 @@ end
 	x = [sum(randsquare(rng,30:40,128,1) for _ in 1:4) for _ in 1:62]
 
 	# 3 x 3 filters
-	@testset "3 x 3 filters" begin
-		R = (3,3)
-		H0 = generatefilters(:DCT,R)
+	R = (3,3)
+	H0 = generatefilters(:DCT,R)
 
-		λ, iters = 1e-2, 4
-		for p in 0:2:8
+	λ, iters = 1e-2, 4
+	for p in 0:2:8
+		@testset "3 x 3 filters (p = $p)" begin
 			refH, refHtrace, refobjtrace, refHdifftrace =
 				Reference.CAOL(x,λ,H0[:,p+1:end],R,iters,1e-13)
 			H, Htrace, objtrace, Hdifftrace =
@@ -86,12 +86,12 @@ end
 	end
 
 	# 4 x 4 filters
-	@testset "4 x 4 filters" begin
-		R = (4,4)
-		H0 = generatefilters(:DCT,R)
+	R = (4,4)
+	H0 = generatefilters(:DCT,R)
 
-		λ, iters = 1e-2, 4
-		for p in 0:5:15
+	λ, iters = 1e-2, 4
+	for p in 0:5:15
+		@testset "4 x 4 filters (p = $p)" begin
 			refH, refHtrace, refobjtrace, refHdifftrace =
 				Reference.CAOL(x,λ,H0[:,p+1:end],R,iters,1e-13)
 			H, Htrace, objtrace, Hdifftrace =
