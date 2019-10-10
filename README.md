@@ -32,7 +32,7 @@ Create initial `3 x 3` filters, e.g., using DCT,
 ```julia
 julia> using ConvolutionalAnalysisOperatorLearning
 
-julia> H0 = generatefilters(:DCT,(3,3))
+julia> H0 = generatefilters(:DCT,(3,3),form=:matrix)
 9×9 Array{Float64,2}:
  0.111111   0.136083      0.0785674   0.136083      0.166667      0.096225      0.0785674   0.096225      0.0555556
  0.111111  -1.74455e-17  -0.157135    0.136083     -2.13663e-17  -0.19245       0.0785674  -1.23358e-17  -0.111111

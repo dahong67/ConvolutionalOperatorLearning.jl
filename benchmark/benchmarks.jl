@@ -10,7 +10,7 @@ rng = MersenneTwister(1)
 x = [randn(rng,128,128) for l in 1:62]
 
 R = (3,3)
-H0 = generatefilters(:DCT,R)
+H0 = generatefilters(:DCT,R,form=:matrix)
 λ = 0.0001
 
 maxiters = 30

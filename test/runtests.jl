@@ -11,7 +11,7 @@ include(joinpath(@__DIR__,"Reference.jl"))
 
 	# 3 x 3 filters
 	R = (3,3)
-	H0 = generatefilters(:DCT,R)
+	H0 = generatefilters(:DCT,R,form=:matrix)
 
 	λ, iters = 1e-4, 4
 	for p in 0:2:8
@@ -33,7 +33,7 @@ include(joinpath(@__DIR__,"Reference.jl"))
 
 	# 4 x 4 filters
 	R = (4,4)
-	H0 = generatefilters(:DCT,R)
+	H0 = generatefilters(:DCT,R,form=:matrix)
 
 	λ, iters = 1e-4, 4
 	for p in 0:5:15
@@ -65,7 +65,7 @@ end
 
 	# 3 x 3 filters
 	R = (3,3)
-	H0 = generatefilters(:DCT,R)
+	H0 = generatefilters(:DCT,R,form=:matrix)
 
 	λ, iters = 1e-2, 4
 	for p in 0:2:8
@@ -87,7 +87,7 @@ end
 
 	# 4 x 4 filters
 	R = (4,4)
-	H0 = generatefilters(:DCT,R)
+	H0 = generatefilters(:DCT,R,form=:matrix)
 
 	λ, iters = 1e-2, 4
 	for p in 0:5:15
