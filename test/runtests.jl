@@ -110,9 +110,8 @@ end
 
 # need to test:
 # + all signatures
-# + termination condition
+# + termination condition (make sure all agree)
 # + rectangular filters
 # + 1d filters/data
 # + 3d filters/data
 # + filter/data dimension mismatch, e.g., 1d filter but 2d data
-# + something related to speed / memory use
