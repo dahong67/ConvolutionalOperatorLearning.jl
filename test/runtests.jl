@@ -16,8 +16,8 @@ include(joinpath(@__DIR__,"Reference.jl"))
 
 		λ, iters = 1e-4, 4
 		for p in 0:2:8
-			refH, (refobjtrace, refHdifftrace), refHtrace =
-				Reference.CAOL(x,H0[:,p+1:end],R,λ,maxiters=iters,tol=1e-13,trace=true)
+			refH, refHtrace, refobjtrace, refHdifftrace =
+				Reference.CAOL(x,λ,H0[:,p+1:end],R,iters,1e-13)
 			H, Htrace, objtrace, Hdifftrace =
 				CAOL(x,λ,(H0[:,p+1:end],R),maxiters=iters,tol=1e-13,trace=true)
 
@@ -38,8 +38,8 @@ include(joinpath(@__DIR__,"Reference.jl"))
 
 		λ, iters = 1e-4, 4
 		for p in 0:5:15
-			refH, (refobjtrace, refHdifftrace), refHtrace =
-				Reference.CAOL(x,H0[:,p+1:end],R,λ,maxiters=iters,tol=1e-13,trace=true)
+			refH, refHtrace, refobjtrace, refHdifftrace =
+				Reference.CAOL(x,λ,H0[:,p+1:end],R,iters,1e-13)
 			H, Htrace, objtrace, Hdifftrace =
 				CAOL(x,λ,(H0[:,p+1:end],R),maxiters=iters,tol=1e-13,trace=true)
 
@@ -70,8 +70,8 @@ end
 
 		λ, iters = 1e-2, 4
 		for p in 0:2:8
-			refH, (refobjtrace, refHdifftrace), refHtrace =
-				Reference.CAOL(x,H0[:,p+1:end],R,λ,maxiters=iters,tol=1e-13,trace=true)
+			refH, refHtrace, refobjtrace, refHdifftrace =
+				Reference.CAOL(x,λ,H0[:,p+1:end],R,iters,1e-13)
 			H, Htrace, objtrace, Hdifftrace =
 				CAOL(x,λ,(H0[:,p+1:end],R),maxiters=iters,tol=1e-13,trace=true)
 
@@ -92,8 +92,8 @@ end
 
 		λ, iters = 1e-2, 4
 		for p in 0:5:15
-			refH, (refobjtrace, refHdifftrace), refHtrace =
-				Reference.CAOL(x,H0[:,p+1:end],R,λ,maxiters=iters,tol=1e-13,trace=true)
+			refH, refHtrace, refobjtrace, refHdifftrace =
+				Reference.CAOL(x,λ,H0[:,p+1:end],R,iters,1e-13)
 			H, Htrace, objtrace, Hdifftrace =
 				CAOL(x,λ,(H0[:,p+1:end],R),maxiters=iters,tol=1e-13,trace=true)
 
