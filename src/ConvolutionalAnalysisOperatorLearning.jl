@@ -67,7 +67,7 @@ function _CAOL(x,H0,R,λ,maxiters,tol)
         _updateΨZ!(ΨZ,ψz,xpad,h,λ,zlk,ψztemp) # Update ΨZ
         _updateH!(H,ΨZ,H0,HΨZ,UVt)            # Update filters as polar factor
 
-        sosdiff(Hprev,H) / (size(H,2)/size(H,1)) <= tol && break
+        sqrt(sosdiff(Hprev,H) / (size(H,2)/size(H,1))) <= tol && break
     end
 
     return H
@@ -87,7 +87,7 @@ function _CAOLtrace(x,H0,R,λ,maxiters,tol)
 
         push!(Htrace,copy(H))
         push!(objtrace,obj)
-        push!(Hdifftrace, sqrt(sosdiff(Hprev,H) / (size(H0,2)/prod(R))))
+        push!(Hdifftrace, sqrt(sosdiff(Hprev,H) / (size(H,2)/size(H,1))))
 
         Hdifftrace[end] <= tol && break
     end
