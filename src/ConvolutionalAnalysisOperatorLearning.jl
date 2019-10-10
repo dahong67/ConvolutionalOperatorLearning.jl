@@ -58,7 +58,7 @@ function _updateH!(H,ΨZ,H0,HΨZ,UVt)
 end
 
 # Core CAOL
-function _CAOL(x,H0,R,λ,maxiters,tol)
+function _CAOL(x,λ,H0,R,maxiters,tol)
     @assert H0'H0 ≈ (1/prod(R))*I
     xpad, H, h, Hprev, zlk, ΨZ, ψz, ψztemp, HΨZ, UVt = _initvars(x,H0,R)
 
@@ -72,7 +72,7 @@ function _CAOL(x,H0,R,λ,maxiters,tol)
 
     return H
 end
-function _CAOLtrace(x,H0,R,λ,maxiters,tol)
+function _CAOLtrace(x,λ,H0,R,maxiters,tol)
     @assert H0'H0 ≈ (1/prod(R))*I
     xpad, H, h, Hprev, zlk, ΨZ, ψz, ψztemp, HΨZ, UVt = _initvars(x,H0,R)
 
@@ -160,10 +160,10 @@ function CAOL(x::SignalBank{N},λ::Real,h0::SignalBank{N};
 
     H0,R = _filtermatrix(h0[p+1:end])
     if !trace
-        H = _CAOL(x,H0,R,λ,maxiters,tol)
+        H = _CAOL(x,λ,H0,R,maxiters,tol)
         return [h0[1:p]; Array.(_filterlist(H,R))]
     else
-        H, Htrace, objtrace, Hdifftrace = _CAOLtrace(x,H0,R,λ,maxiters,tol)
+        H, Htrace, objtrace, Hdifftrace = _CAOLtrace(x,λ,H0,R,maxiters,tol)
         return [h0[1:p]; Array.(_filterlist(H,R))], _filterlist.(Htrace), objtrace, Hdifftrace
     end
 end
@@ -174,10 +174,10 @@ function CAOL(x::SignalBank{N},λ::Real,(H0,R)::SignalTuple{N};
     @assert p < size(H0,2)
 
     if !trace
-        H = _CAOL(x,H0[:,p+1:end],R,λ,maxiters,tol)
+        H = _CAOL(x,λ,H0[:,p+1:end],R,maxiters,tol)
         return [H0[:,1:p] H]
     else
-        H, Htrace, objtrace, Hdifftrace = _CAOLtrace(x,H0[:,p+1:end],R,λ,maxiters,tol)
+        H, Htrace, objtrace, Hdifftrace = _CAOLtrace(x,λ,H0[:,p+1:end],R,maxiters,tol)
         return [H0[:,1:p] H], Htrace, objtrace, Hdifftrace
     end
 end
