@@ -129,12 +129,11 @@ function CAOL(x::SignalBank{N},λ::Real,(H0,R)::SignalTuple{N};
 end
 
 # x::AbstractArray
-CAOL(X::AbstractArray,λ::Real,h0::SignalBank;
-        p=0,maxiters=2000,tol=1e-13,trace=false) =
-    CAOL(eachslice(X,dims=N),λ,h0; p=p,maxiters=maxiters,tol=tol,trace=trace)
-CAOL(X::AbstractArray,λ::Real,H0R::SignalTuple;
-        p=0,maxiters=2000,tol=1e-13,trace=false) =
-    CAOL(eachslice(X,dims=N),λ,H0R; p=p,maxiters=maxiters,tol=tol,trace=trace)
+_extractsignals(X::AbstractArray) = collect(eachslice(X,dims=ndims(X)))
+CAOL(X::AbstractArray,λ::Real,h0::SignalBank; p=0,maxiters=2000,tol=1e-13,trace=false) =
+    CAOL(_extractsignals(X),λ,h0; p=p,maxiters=maxiters,tol=tol,trace=trace)
+CAOL(X::AbstractArray,λ::Real,H0R::SignalTuple; p=0,maxiters=2000,tol=1e-13,trace=false) =
+    CAOL(_extractsignals(X),λ,H0R; p=p,maxiters=maxiters,tol=tol,trace=trace)
 
 ## Initializations
 using LinearAlgebra, FFTW
