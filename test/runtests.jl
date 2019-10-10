@@ -1,11 +1,13 @@
 using Test, ConvolutionalAnalysisOperatorLearning
+using Random
 
 # Load reference implementation
-include(joinpath(@__DIR__,"reference.jl"))
+include(joinpath(@__DIR__,"Reference.jl"))
 
 # Random gaussian images (2D)
 @testset "Random gaussian images (2D)" begin
-	x = [randn(128,128) for _ in 1:62]
+	rng = MersenneTwister(1)
+	x = [randn(rng,128,128) for _ in 1:62]
 
 	# 3 x 3 filters
 	@testset "3 x 3 filters" begin
