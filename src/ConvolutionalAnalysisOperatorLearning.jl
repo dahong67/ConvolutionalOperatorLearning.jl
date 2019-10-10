@@ -101,16 +101,16 @@ end
 
 Learn convolutional analysis operators, i.e., sparsifying filters,
 for signals `x` with sparsity regularization `λ` and initial filters `h0`.
-The first `p` filters in h0 are preserved, i.e., handcrafted.
+Preserve the first `p` filters in `h0`, i.e., consider them handcrafted.
 
 `x` can be either:
 + a vector of training signals each a D-dimensional array
-+ a (D+1)-dimnensional array with training sample `i` being slice `x(:,...,:,i)`
++ a (D+1)-dimnensional array with training sample `i` being slice `x[:,...,:,i]`
 
 `h0` can be either:
 + a vector of filters each a D-dimensional array
 + a tuple `(H0,R)` where each column of the matrix `H0` is a vectorized filter
-  and where `R` gives the shape of the filter.
+  and where `R` gives the size/shape of the filter.
 The filters must be orthogonal to one another
 and each filter must be normalized to have norm `1/sqrt(filter length)`,
 i.e., `H0'H0 ≈ (1/size(H0,1))*I`.
