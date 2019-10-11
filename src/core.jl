@@ -8,6 +8,8 @@ function _initvars(x,H0,R)
 
     # Form padded images
     xpad = [padarray(xl,Pad(:circular,ntuple(_->0,ndims(xl)),R)) for xl in x]
+    # xpad = [view(xl,ntuple(i->vcat(1:size(xl,i),1:R[i]),ndims(xl))...) for xl in x]
+    # more memory efficient but seems slower, make a copy for now
 
     # Initialize filters
     H = copy(H0)
