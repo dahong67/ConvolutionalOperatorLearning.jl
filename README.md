@@ -7,7 +7,7 @@ Learn multi-dimensional convolutional analysis operators
 Install using Julia's Pkg REPL-mode
 (hitting `]` as the first character of the command prompt):
 ```
-(v1.0) pkg> add https://github.com/dahong67/ConvolutionalOperatorLearning.jl
+(v1.1) pkg> add https://github.com/dahong67/ConvolutionalOperatorLearning.jl
 ```
 
 ## Example usage
