@@ -1,4 +1,4 @@
-using Test, ConvolutionalAnalysisOperatorLearning
+using Test, ConvolutionalOperatorLearning
 using Random
 
 # Load reference implementation

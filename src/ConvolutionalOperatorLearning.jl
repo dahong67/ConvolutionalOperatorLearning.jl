@@ -1,4 +1,4 @@
-module ConvolutionalAnalysisOperatorLearning
+module ConvolutionalOperatorLearning
 
 export CAOL, generatefilters
 

@@ -1,4 +1,4 @@
-using BenchmarkTools, ConvolutionalAnalysisOperatorLearning
+using BenchmarkTools, ConvolutionalOperatorLearning
 using Random
 
 const SUITE = BenchmarkGroup()

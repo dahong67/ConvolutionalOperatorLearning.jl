@@ -1,4 +1,4 @@
-# ConvolutionalAnalysisOperatorLearning.jl
+# ConvolutionalOperatorLearning.jl
 Learn multi-dimensional convolutional analysis operators
 (i.e., sparsifying filters) from data.
 
@@ -7,7 +7,7 @@ Learn multi-dimensional convolutional analysis operators
 Install using Julia's Pkg REPL-mode
 (hitting `]` as the first character of the command prompt):
 ```
-(v1.0) pkg> add https://github.com/dahong67/ConvolutionalAnalysisOperatorLearning.jl
+(v1.0) pkg> add https://github.com/dahong67/ConvolutionalOperatorLearning.jl
 ```
 
 ## Example usage
@@ -30,7 +30,7 @@ julia> x = [randn(100,50) for _ in 1:10]
 
 Create initial `3 x 3` filters, e.g., using DCT,
 ```julia
-julia> using ConvolutionalAnalysisOperatorLearning
+julia> using ConvolutionalOperatorLearning
 
 julia> H0 = generatefilters(:DCT,(3,3),form=:matrix)
 9×9 Array{Float64,2}:
@@ -162,7 +162,7 @@ and [`BenchmarkTools.jl`](https://www.github.com/JuliaCI/BenchmarkTools.jl).
 Then run
 ```julia
 using PkgBenchmark
-b = benchmarkpkg("ConvolutionalAnalysisOperatorLearning")
+b = benchmarkpkg("ConvolutionalOperatorLearning")
 export_markdown(stdout,b)
 ```
 to get a markdown representation of the results to `stdout`.
@@ -170,7 +170,7 @@ to get a markdown representation of the results to `stdout`.
 To benchmark against the previous commit use
 ```julia
 using PkgBenchmark
-b = judge("ConvolutionalAnalysisOperatorLearning","HEAD~1")
+b = judge("ConvolutionalOperatorLearning","HEAD~1")
 export_markdown(stdout,b)
 ```
 

@@ -1,5 +1,5 @@
-name = "ConvolutionalAnalysisOperatorLearning"
-uuid = "3a526176-b9f4-11e9-0037-2fe9a5ca0081"
+name = "ConvolutionalOperatorLearning"
+uuid = "3c17ac3d-2343-4d75-b01f-81723beeda4b"
 authors = ["David Hong <dahong@umich.edu>"]
 version = "0.1.0"
 
