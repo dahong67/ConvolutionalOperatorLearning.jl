@@ -1,2 +1,7 @@
-Manifest.toml
-benchmark/tune.json
+*.jl.*.cov
+*.jl.cov
+*.jl.mem
+.DS_Store
+/Manifest.toml
+/dev/
+/benchmark/tune.json
