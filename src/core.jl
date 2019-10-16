@@ -10,6 +10,7 @@ function _initvars(x,H0,R)
     xpad = [padarray(xl,Pad(:circular,ntuple(_->0,ndims(xl)),R)) for xl in x]
     # xpad = [view(xl,ntuple(i->vcat(1:size(xl,i),1:R[i]),ndims(xl))...) for xl in x]
     # more memory efficient but seems slower, make a copy for now
+    # may be relevant: https://docs.julialang.org/en/v1/manual/performance-tips/#Copying-data-is-not-always-bad-1
 
     # Initialize filters
     H = copy(H0)
