@@ -16,16 +16,16 @@ H0 = generatefilters(:DCT,R,form=:matrix)
 for p in 0:2:8
 	@testset "Random gaussian images (2D), 3 x 3 filters (p = $p)" begin
 		refH, refHtrace, refobjtrace, refHdifftrace =
-			Reference.CAOL(x,λ,H0[:,p+1:end],R,iters,tol)
+			Reference.CAOL(x,λ,H0[:,p+1:size(H0,2)],R,iters,tol)
 		H, Htrace, objtrace, Hdifftrace =
-			CAOL(x,λ,(H0[:,p+1:end],R),maxiters=iters,tol=tol,trace=true)
+			CAOL(x,λ,(H0[:,p+1:size(H0,2)],R),maxiters=iters,tol=tol,trace=true)
 
 		@test H          == refH
 		@test Htrace     == refHtrace
 		@test objtrace   == refobjtrace
 		@test Hdifftrace == refHdifftrace
 
-		H = CAOL(x,λ,(H0[:,p+1:end],R),maxiters=iters,tol=tol)
+		H = CAOL(x,λ,(H0[:,p+1:size(H0,2)],R),maxiters=iters,tol=tol)
 		@test H == refH
 	end
 end
@@ -38,16 +38,16 @@ H0 = generatefilters(:DCT,R,form=:matrix)
 for p in 0:5:15
 	@testset "Random gaussian images (2D), 4 x 4 filters (p = $p)" begin
 		refH, refHtrace, refobjtrace, refHdifftrace =
-			Reference.CAOL(x,λ,H0[:,p+1:end],R,iters,tol)
+			Reference.CAOL(x,λ,H0[:,p+1:size(H0,2)],R,iters,tol)
 		H, Htrace, objtrace, Hdifftrace =
-			CAOL(x,λ,(H0[:,p+1:end],R),maxiters=iters,tol=tol,trace=true)
+			CAOL(x,λ,(H0[:,p+1:size(H0,2)],R),maxiters=iters,tol=tol,trace=true)
 
 		@test H          == refH
 		@test Htrace     == refHtrace
 		@test objtrace   == refobjtrace
 		@test Hdifftrace == refHdifftrace
 
-		H = CAOL(x,λ,(H0[:,p+1:end],R),maxiters=iters,tol=tol)
+		H = CAOL(x,λ,(H0[:,p+1:size(H0,2)],R),maxiters=iters,tol=tol)
 		@test H == refH
 	end
 end
@@ -68,16 +68,16 @@ H0 = generatefilters(:DCT,R,form=:matrix)
 for p in 0:2:8
 	@testset "Random overlaid squares (2D), 3 x 3 filters (p = $p)" begin
 		refH, refHtrace, refobjtrace, refHdifftrace =
-			Reference.CAOL(x,λ,H0[:,p+1:end],R,iters,tol)
+			Reference.CAOL(x,λ,H0[:,p+1:size(H0,2)],R,iters,tol)
 		H, Htrace, objtrace, Hdifftrace =
-			CAOL(x,λ,(H0[:,p+1:end],R),maxiters=iters,tol=tol,trace=true)
+			CAOL(x,λ,(H0[:,p+1:size(H0,2)],R),maxiters=iters,tol=tol,trace=true)
 
 		@test H          == refH
 		@test Htrace     == refHtrace
 		@test objtrace   == refobjtrace
 		@test Hdifftrace == refHdifftrace
 
-		H = CAOL(x,λ,(H0[:,p+1:end],R),maxiters=iters,tol=tol)
+		H = CAOL(x,λ,(H0[:,p+1:size(H0,2)],R),maxiters=iters,tol=tol)
 		@test H == refH
 	end
 end
@@ -90,16 +90,16 @@ H0 = generatefilters(:DCT,R,form=:matrix)
 for p in 0:5:15
 	@testset "Random overlaid squares (2D), 4 x 4 filters (p = $p)" begin
 		refH, refHtrace, refobjtrace, refHdifftrace =
-			Reference.CAOL(x,λ,H0[:,p+1:end],R,iters,tol)
+			Reference.CAOL(x,λ,H0[:,p+1:size(H0,2)],R,iters,tol)
 		H, Htrace, objtrace, Hdifftrace =
-			CAOL(x,λ,(H0[:,p+1:end],R),maxiters=iters,tol=tol,trace=true)
+			CAOL(x,λ,(H0[:,p+1:size(H0,2)],R),maxiters=iters,tol=tol,trace=true)
 
 		@test H          == refH
 		@test Htrace     == refHtrace
 		@test objtrace   == refobjtrace
 		@test Hdifftrace == refHdifftrace
 
-		H = CAOL(x,λ,(H0[:,p+1:end],R),maxiters=iters,tol=tol)
+		H = CAOL(x,λ,(H0[:,p+1:size(H0,2)],R),maxiters=iters,tol=tol)
 		@test H == refH
 	end
 end
