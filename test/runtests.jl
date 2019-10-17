@@ -6,7 +6,7 @@ include(joinpath(@__DIR__,"Reference.jl"))
 
 # Random gaussian images (2D)
 rng = MersenneTwister(1)
-x = [randn(rng,128,128) for _ in 1:62]
+x = [randn(rng,16,16) for _ in 1:4]
 
 # 3 x 3 filters
 R = (3,3)
@@ -58,7 +58,7 @@ square((x,y),w,n) = [y-w<i<y+w && x-w<j<x+w ? 1.0 : 0.0 for i in 1:n, j in 1:n]
 randsquare(rng,wrange,n,T) = square(
 	rand(rng,1+first(wrange):n-first(wrange),2),
 	rand(rng,wrange), n)
-x = [sum(randsquare(rng,30:40,128,1) for _ in 1:4) for _ in 1:62]
+x = [sum(randsquare(rng,2:3,16,1) for _ in 1:5) for _ in 1:4]
 
 # 3 x 3 filters
 R = (3,3)
