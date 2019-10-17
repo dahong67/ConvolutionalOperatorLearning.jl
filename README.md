@@ -1,6 +1,16 @@
 # ConvolutionalOperatorLearning.jl
+
+[![Build Status](https://travis-ci.org/dahong67/ConvolutionalOperatorLearning.jl.svg?branch=master)](https://travis-ci.org/dahong67/ConvolutionalOperatorLearning.jl)
+[![codecov](https://codecov.io/gh/dahong67/ConvolutionalOperatorLearning.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/dahong67/ConvolutionalOperatorLearning.jl)
+
 Learn multi-dimensional convolutional analysis operators
 (i.e., sparsifying filters) from data.
+Based on the papers:
+
+> Il Yong Chun and Jeffrey A. Fessler, "Convolutional analysis operator learning: Acceleration and convergence," IEEE Trans. Image Process. (to appear), Aug. 2019.
+[Online] Available: http://arxiv.org/abs/1802.05584
+>
+> Caroline Crockett, David Hong, Il Yong Chun, Jeffrey A. Fessler, "Incorporating handcrafted filters in convolutional analysis operator learning for ill-posed inverse problems," Accepted to IEEE CAMSAP 2019.
 
 ## Installation
 
@@ -145,13 +155,6 @@ The optimization is carried out via alternating minimization.
 double check the derivation (especially `R`s and `K`s, and dimension > 1),
 write up the version for handcrafted filters,
 and put into docs with LaTeX.
-
-## Relevant papers
-
-[1] Il Yong Chun and Jeffrey A. Fessler, "Convolutional analysis operator learning: Acceleration and convergence," IEEE Trans. Image Process. (to appear), Aug. 2019.
-[Online] Available: http://arxiv.org/abs/1802.05584
-
-[2] Caroline Crockett, David Hong, Il Yong Chun, Jeffrey A. Fessler, "Incorporating handcrafted filters in convolutional analysis operator learning for ill-posed inverse problems," Accepted to IEEE CAMSAP 2019.
 
 ## Benchmarking
 
