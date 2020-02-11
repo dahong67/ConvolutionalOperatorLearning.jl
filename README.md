@@ -1,6 +1,6 @@
 # ConvolutionalOperatorLearning.jl
 
-[![Build Status](https://travis-ci.org/dahong67/ConvolutionalOperatorLearning.jl.svg?branch=master)](https://travis-ci.org/dahong67/ConvolutionalOperatorLearning.jl)
+[![CI](https://github.com/dahong67/ConvolutionalOperatorLearning.jl/workflows/CI/badge.svg)](https://github.com/dahong67/ConvolutionalOperatorLearning.jl/actions)
 [![codecov](https://codecov.io/gh/dahong67/ConvolutionalOperatorLearning.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/dahong67/ConvolutionalOperatorLearning.jl)
 
 Learn multi-dimensional convolutional analysis operators
