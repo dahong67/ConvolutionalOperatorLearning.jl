@@ -415,3 +415,50 @@ end
 
 # need to test:
 # + termination condition (make sure all agree)
+@testset "Termination condition test" begin
+	rng = MersenneTwister(1)
+	square((x,y),w,n) = [y-w<i<y+w && x-w<j<x+w ? 1.0 : 0.0 for i in 1:n, j in 1:n]
+	randsquare(rng,wrange,n,T) = square(
+		rand(rng,1+first(wrange):n-first(wrange),2),
+		rand(rng,wrange), n)
+	x = [sum(randsquare(rng,2:3,16,1) for _ in 1:5) for _ in 1:4]
+	X = cat(x..., dims=ndims(x[1])+1) # in matrix form
+
+	# 3 x 3 filters
+	R = (3,3)
+	H0 = generatefilters(:DCT,R,form=:matrix)
+	h0 = generatefilters(:DCT,R,form=:list)
+	λ, iters, tol = 1e-2, 10000, 1e-8
+	for p in 0:2:8
+		@testset "3 x 3 filters (p = $p)" begin
+			refH, refHtrace, refobjtrace, refHdifftrace =
+				Reference.CAOL(x,λ,H0[:,p+1:size(H0,2)],R,iters,tol)
+
+			Hx, Hx_Htrace, Hx_objtrace, Hx_Hdifftrace =
+				CAOL(x,λ,(H0[:,p+1:size(H0,2)],R),maxiters=iters,tol=tol,trace=true)
+
+			HX, HX_Htrace, HX_objtrace, HX_Hdifftrace =
+				CAOL(X,λ,(H0[:,p+1:size(H0,2)],R),maxiters=iters,tol=tol,trace=true)
+
+			hx, hx_Htrace, hx_objtrace, hx_Hdifftrace =
+				CAOL(x,λ,h0[p+1:end],maxiters=iters,tol=tol,trace=true)
+			hx = ConvolutionalOperatorLearning._filtermatrix(hx)[1]
+			hx_Htrace = [ConvolutionalOperatorLearning._filtermatrix(ht)[1] for ht in hx_Htrace]
+
+			hX, hX_Htrace, hX_objtrace, hX_Hdifftrace =
+				CAOL(X,λ,h0[p+1:end],maxiters=iters,tol=tol,trace=true)
+			hX = ConvolutionalOperatorLearning._filtermatrix(hX)[1]
+			hX_Htrace = [ConvolutionalOperatorLearning._filtermatrix(ht)[1] for ht in hX_Htrace]
+
+			@test length(hX_Hdifftrace) < iters # otherwise not testing convergence!
+
+			@test refH 		    == Hx 			 == HX            == hX 		   == hx
+			@test refHtrace     == Hx_Htrace     == HX_Htrace     == hX_Htrace     == hx_Htrace
+			@test refobjtrace   == Hx_objtrace   == HX_objtrace   == hX_objtrace   == hx_objtrace
+			@test refHdifftrace == Hx_Hdifftrace == HX_Hdifftrace == hX_Hdifftrace == hx_Hdifftrace
+
+			H = CAOL(X,λ,(H0[:,p+1:size(H0,2)],R),maxiters=iters,tol=tol)
+			@test H == refH
+		end
+	end
+end
