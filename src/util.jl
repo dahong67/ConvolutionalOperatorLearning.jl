@@ -14,4 +14,4 @@ _obj(zlk,λ) = sum(z -> (abs(z) < sqrt(2λ) ? abs2(z)/2 : λ), zlk)
 _filtermatrix(hlist) =
     (hcat([vec(h) for h in hlist]...)::Matrix{eltype(first(hlist))},
      size(first(hlist)))
-_filterlist(Hmatrix,R) = [reshape(h,map(n->1:n,R)) for h in eachcol(Hmatrix)]
+_filterlist(Hmatrix,R) = [reshape(h,map(n->n,R)) for h in eachcol(Hmatrix)]
