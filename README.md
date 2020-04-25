@@ -7,10 +7,10 @@ Learn multi-dimensional convolutional analysis operators
 (i.e., sparsifying filters) from data.
 Based on the papers:
 
-> Il Yong Chun and Jeffrey A. Fessler, "Convolutional analysis operator learning: Acceleration and convergence," IEEE Trans. Image Process. (to appear), Aug. 2019.
+> Il Yong Chun and Jeffrey A. Fessler, "Convolutional analysis operator learning: Acceleration and convergence," IEEE Trans. Image Process., 29:2108-2122, 2020.
 [Online] Available: http://arxiv.org/abs/1802.05584
 >
-> Caroline Crockett, David Hong, Il Yong Chun, Jeffrey A. Fessler, "Incorporating handcrafted filters in convolutional analysis operator learning for ill-posed inverse problems," Accepted to IEEE CAMSAP 2019.
+> Caroline Crockett, David Hong, Il Yong Chun, Jeffrey A. Fessler, "Incorporating handcrafted filters in convolutional analysis operator learning for ill-posed inverse problems," in Proc. IEEE CAMSAP, pp. 316-320, Guadeloupe, West Indies, Dec. 2019. 
 
 ## Installation
 
