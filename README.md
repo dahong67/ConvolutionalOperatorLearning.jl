@@ -8,9 +8,12 @@ Learn multi-dimensional convolutional analysis operators
 Based on the papers:
 
 > Il Yong Chun and Jeffrey A. Fessler, "Convolutional analysis operator learning: Acceleration and convergence," IEEE Trans. Image Process., 29:2108-2122, 2020.
-[Online] Available: http://arxiv.org/abs/1802.05584
+[Online] Available: http://arxiv.org/abs/1802.05584.
 >
 > Caroline Crockett, David Hong, Il Yong Chun, Jeffrey A. Fessler, "Incorporating handcrafted filters in convolutional analysis operator learning for ill-posed inverse problems," in Proc. IEEE CAMSAP, pp. 316-320, Guadeloupe, West Indies, Dec. 2019. 
+>
+> Il Yong Chun, David Hong, Ben Adcock, and Jeffrey A. Fessler, “Convolutional analysis operator learning: Dependence on training data,” IEEE Signal Process. Lett., 26(8):1137–1141, Aug. 2019. 
+[Online] Available: http://arxiv.org/abs/1902.08267.
 
 ## Installation
 
