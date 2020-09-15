@@ -12,7 +12,7 @@ OffsetArrays = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
 [compat]
 FFTW = "1.0.1"
 ImageFiltering = "0.6.5"
-OffsetArrays = "0.11.1"
+OffsetArrays = "0.11.1, 1.2"
 julia = "1.1"
 
 [extras]
